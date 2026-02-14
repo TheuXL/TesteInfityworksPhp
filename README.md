@@ -4,11 +4,67 @@ Bem-vindo ao repositório da **Plataforma Prof. Jubilut**: uma aplicação compl
 
 ---
 
-## ⚡ Como rodar o projeto (Docker)
+## ⚡ Como rodar o projeto
 
-O projeto usa **Docker** e **Docker Compose** ([`docker-compose.yml`](docker-compose.yml)) para subir o **backend** (Laravel) e o **MySQL**. O frontend roda na sua máquina com `npm run dev`.
+Para rodar o projeto, siga estes passos na ordem:
 
-### 1. Subir backend e MySQL
+### 1. Instalar dependências (backend e frontend)
+
+No **backend** e no **frontend**, execute `npm install`:
+
+**Windows (PowerShell):**
+```powershell
+cd backend
+npm install
+cd ..\frontend
+npm install
+```
+
+**Linux / macOS:**
+```bash
+cd backend && npm install
+cd ../frontend && npm install
+```
+
+*(No backend, o `npm install` é usado por ferramentas opcionais; as dependências principais do Laravel são instaladas via Composer dentro do Docker.)*
+
+### 2. Criar o arquivo `backend/.env.docker`
+
+Crie o arquivo **`backend/.env.docker`** (na raiz do projeto: `backend/.env.docker`) com o seguinte conteúdo:
+
+```env
+APP_NAME=Laravel
+APP_ENV=local
+APP_KEY=base64:PGOngFuRa/3nYai4hUxfCUI5uyC7JPyhAZQy6n7QJjI=
+APP_DEBUG=true
+APP_URL=http://127.0.0.1:8000
+FRONTEND_URL=http://localhost:5173
+SESSION_DOMAIN=localhost
+
+LOG_CHANNEL=stack
+LOG_DEPRECATIONS_CHANNEL=null
+LOG_LEVEL=debug
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=laravel
+DB_USERNAME=root
+DB_PASSWORD=
+
+BROADCAST_DRIVER=log
+CACHE_DRIVER=file
+FILESYSTEM_DISK=local
+QUEUE_CONNECTION=sync
+SESSION_DRIVER=file
+SESSION_LIFETIME=120
+```
+
+Esse arquivo é copiado para `.env` dentro do container na hora do build. O `docker-compose` sobrescreve `DB_HOST`, `DB_DATABASE` e `DB_PASSWORD` quando o app roda no Docker.
+
+### 3. Subir o backend e o MySQL com Docker
+
+Use o comando adequado ao seu sistema:
 
 **Windows (PowerShell):**
 ```powershell
@@ -28,11 +84,19 @@ Os scripts [`run.ps1`](run.ps1) (Windows) e [`run.sh`](run.sh) (Linux/macOS) ver
 docker compose up -d --build
 ```
 
-### 2. Subir o frontend
+### 4. Subir o frontend
 
+No diretório **frontend**, rode o servidor de desenvolvimento:
+
+**Windows (PowerShell):**
+```powershell
+cd frontend
+npm run dev
+```
+
+**Linux / macOS:**
 ```bash
 cd frontend
-npm install
 npm run dev
 ```
 
@@ -76,7 +140,7 @@ php artisan test
 
 ## 📋 Índice
 
-- [Como rodar o projeto (Docker)](#-como-rodar-o-projeto-docker)
+- [Como rodar o projeto](#-como-rodar-o-projeto)
 - [Como rodar os testes](#-como-rodar-os-testes)
 - [Documentação completa](#-documentação-completa)
 - [Visão Geral do Projeto](#-visão-geral-do-projeto)
