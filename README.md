@@ -1,18 +1,19 @@
 # **Plataforma Prof. Jubilut – Projeto Completo**
 
-Bem-vindo ao repositório da **Plataforma Prof. Jubilut**: uma aplicação completa de gestão escolar com **área administrativa** e **área do aluno**. O projeto é dividido em **backend** (API Laravel + MySQL) e **frontend** (SPA Vue 3), que se comunicam via API REST com autenticação por sessão (Laravel Sanctum). Este README descreve o projeto como um todo, como rodar com **Docker** ou em **ambiente local**, configuração de **.env**, banco de dados e onde encontrar a documentação detalhada de cada parte.
+Bem-vindo ao repositório da **Plataforma Prof. Jubilut**: uma aplicação completa de gestão escolar com **área administrativa** e **área do aluno**. O projeto é dividido em **Backend** (API Laravel 10 + MySQL), **Frontend** (SPA Vue 3) e **Banco de Dados (MySQL 8)**, que se integram via API REST com autenticação por sessão (Laravel Sanctum). Este README descreve o sistema como um todo, explicando em detalhe o backend, o frontend e o banco de dados, além de como rodar com **Docker** ou em **ambiente local**.
 
 ## 📋 Índice
 
 - [Visão Geral do Projeto](#-visão-geral-do-projeto)
-- [Arquitetura Geral](#-arquitetura-geral)
+- [Arquitetura do Sistema](#-arquitetura-do-sistema)
+- [Backend (API Laravel)](#-backend-api-laravel)
+- [Frontend (SPA Vue 3)](#-frontend-spa-vue-3)
+- [Banco de Dados (MySQL)](#-banco-de-dados-mysql)
+- [Fluxo Completo: Do Usuário ao Banco](#-fluxo-completo-do-usuário-ao-banco)
 - [Pré-requisitos](#-pré-requisitos)
 - [Quick Start (Docker + Frontend)](#-quick-start-docker--frontend)
-- [Backend: Configuração e Execução](#-backend-configuração-e-execução)
-- [Frontend: Configuração e Execução](#-frontend-configuração-e-execução)
-- [Banco de Dados (MySQL)](#-banco-de-dados-mysql)
-- [Docker: Serviços e Scripts](#-docker-serviços-e-scripts)
-- [Variáveis de Ambiente (.env)](#-variáveis-de-ambiente-env)
+- [Configuração e Execução](#-configuração-e-execução)
+- [Variáveis de Ambiente](#-variáveis-de-ambiente)
 - [Credenciais Padrão](#-credenciais-padrão)
 - [Estrutura do Repositório](#-estrutura-do-repositório)
 - [Documentação Detalhada](#-documentação-detalhada)
@@ -22,13 +23,13 @@ Bem-vindo ao repositório da **Plataforma Prof. Jubilut**: uma aplicação compl
 
 ## 🚀 Visão Geral do Projeto
 
-A Plataforma Prof. Jubilut é composta por:
+A **Plataforma Prof. Jubilut** é uma solução de gestão escolar que combina:
 
-1. **Backend (Laravel 10)** – API REST em PHP que gerencia usuários (admin e aluno), áreas, cursos, professores, disciplinas, alunos e matrículas. Oferece relatórios (idade média por curso, aluno mais novo/mais velho), dados para gráficos nos dashboards, autenticação via **Laravel Sanctum** (sessão/cookies) e proteção de rotas por papel (`admin` e `student`). Persistência em **MySQL** com todas as tabelas criadas por **migrations**.
+1. **Backend (Laravel 10)** – API REST em PHP que centraliza a lógica de negócio: usuários (admin e aluno), áreas, cursos, professores, disciplinas, alunos e matrículas. Oferece autenticação via **Laravel Sanctum** (sessão/cookies), proteção de rotas por papel (`admin` e `student`), relatórios (idade média por curso, aluno mais novo/mais velho) e dados para gráficos nos dashboards. Toda a persistência é em **MySQL**, com tabelas criadas **exclusivamente por migrations**.
 
-2. **Frontend (Vue 3 SPA)** – Interface única em Vue 3 + Vue Router + Pinia + Tailwind + ApexCharts. Duas áreas: **Admin** (dashboard com gráficos, CRUD de todas as entidades, relatórios, cadastro de administrador) e **Aluno** (dashboard com “meus cursos”, “minha idade”, “minhas matrículas”, e edição do próprio perfil). Consome a API do backend; em desenvolvimento o **Vite** faz proxy das requisições para o Laravel.
+2. **Frontend (Vue 3 SPA)** – Interface única em Vue 3 + Vue Router + Pinia + Tailwind + ApexCharts. Duas áreas: **Admin** (dashboard com gráficos, CRUD de todas as entidades, relatórios, cadastro de administrador) e **Aluno** (dashboard com “meus cursos”, “minha idade”, “minhas matrículas”, e edição do próprio perfil). Consome a API do backend; em desenvolvimento o **Vite** faz proxy das requisições para o Laravel. Responsiva (PC e mobile).
 
-3. **Docker** – Opcional: sobe o **backend** (PHP 8.2 + Laravel) e o **MySQL 8** em containers. O frontend continua rodando na sua máquina (`npm run dev`) e usa o proxy para falar com o backend na porta 8000.
+3. **Banco de Dados (MySQL 8)** – Armazena usuários, alunos, áreas, cursos, professores, disciplinas e matrículas. Todas as tabelas e relacionamentos são definidos por **migrations** do Laravel; o **seed** de desenvolvimento cria dados de exemplo (admin, aluno, áreas, cursos, professores, disciplinas e matrículas).
 
 ### O que o sistema oferece
 
@@ -40,57 +41,247 @@ A Plataforma Prof. Jubilut é composta por:
 - **Filtro** de alunos por nome e e-mail na listagem admin.
 - **Responsivo** e preparado para uso em mobile.
 
+### Diferenciais
+
+- **Separação clara:** Backend (API), Frontend (SPA) e Banco (MySQL) documentados e versionados.
+- **Autenticação por papel:** Admin e aluno com rotas e dados isolados; Sanctum para sessão/cookies.
+- **Banco 100% por migrations:** Nenhuma tabela criada manualmente; integridade referencial via foreign keys.
+- **Docker opcional:** Backend e MySQL em containers; frontend pode rodar local com proxy para a API.
+
 ---
 
-## 🏗️ Arquitetura Geral
+## 🏗️ Arquitetura do Sistema
 
+O sistema segue uma arquitetura em três camadas: o **usuário** interage apenas com o **Frontend**; o Frontend chama o **Backend** via HTTP (cookies de sessão Sanctum); o Backend persiste e consulta dados no **MySQL**.
+
+### Diagrama da Arquitetura Geral
+
+```mermaid
+graph TB
+    subgraph "Usuário"
+        U[Navegador]
+    end
+
+    subgraph "Frontend – Vue 3 SPA"
+        F1[Vue Router<br/>/, /login, /admin/*, /aluno/*]
+        F2[Pinia – auth store]
+        F3[Axios – API client<br/>withCredentials]
+        F4[Páginas: Login, Dashboard, CRUDs, Perfil]
+        F5[Componentes: UI + Gráficos ApexCharts]
+    end
+
+    subgraph "Backend – Laravel 10 API"
+        B1[Rotas Web: /login, /register, /logout]
+        B2[API v1: /user, /admin/*, /aluno/*]
+        B3[Middleware: auth:sanctum, role.admin, role.student]
+        B4[Controllers, Form Requests, API Resources]
+        B5[Services: ReportService, StudentChartDataService]
+        B6[Repositories + Models Eloquent]
+    end
+
+    subgraph "Banco de Dados"
+        DB[(MySQL 8<br/>users, students, areas, courses,<br/>teachers, disciplines, enrollments)]
+    end
+
+    U --> F1
+    F1 --> F2
+    F1 --> F4
+    F4 --> F3
+    F4 --> F5
+    F3 -->|HTTP + cookies| B1
+    F3 -->|HTTP + cookies| B2
+    B1 --> B4
+    B2 --> B3
+    B3 --> B4
+    B4 --> B5
+    B5 --> B6
+    B6 --> DB
+
+    style U fill:#e1f5fe
+    style F1 fill:#e8f5e9
+    style B2 fill:#fff3e0
+    style DB fill:#fce4ec
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         USUÁRIO (navegador)                              │
-└─────────────────────────────────────────────────────────────────────────┘
-                                      │
-                                      ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│  FRONTEND (Vue 3 SPA)                                                    │
-│  http://localhost:5173                                                   │
-│  • Vue Router (/, /login, /register, /admin/*, /aluno/*)                │
-│  • Pinia (store auth: user, isAdmin, isStudent)                          │
-│  • Axios → proxy /api, /login, /register, /logout, /sanctum → Backend   │
-│  • Páginas: Login, Register, Dashboard Admin, CRUDs, Reports,            │
-│             Dashboard Aluno, Perfil Aluno                                │
-└─────────────────────────────────────────────────────────────────────────┘
-                                      │
-                    HTTP (cookies de sessão Sanctum)
-                                      │
-                                      ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│  BACKEND (Laravel 10 API)                                                │
-│  http://127.0.0.1:8000  (ou container Docker)                           │
-│  • Rotas web: GET /, /docs, POST /login, /register, /logout             │
-│  • API v1: /api/v1/user, /api/v1/admin/*, /api/v1/aluno/*               │
-│  • Middleware: auth:sanctum, role.admin, role.student                    │
-│  • Services: ReportService, StudentChartDataService                      │
-│  • Models: User, Student, Area, Course, Teacher, Discipline, Enrollment   │
-└─────────────────────────────────────────────────────────────────────────┘
-                                      │
-                                      ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│  MYSQL 8                                                                 │
-│  localhost:3306  (ou container Docker)                                   │
-│  • Banco: plataforma (Docker) ou laravel/plataforma (local)              │
-│  • Tabelas: users, students, areas, courses, teachers, disciplines,       │
-│             enrollments, + migrations Laravel (sessions, cache, etc.)   │
-└─────────────────────────────────────────────────────────────────────────┘
+
+### Diagrama de Comunicação (Desenvolvimento)
+
+```mermaid
+sequenceDiagram
+    participant U as Usuário
+    participant Vite as Frontend (Vite :5173)
+    participant Laravel as Backend (Laravel :8000)
+    participant MySQL as MySQL :3306
+
+    U->>Vite: Acessa http://localhost:5173
+    Vite->>U: SPA (Vue)
+
+    U->>Vite: Login (e-mail, senha)
+    Vite->>Vite: getCsrfCookie()
+    Vite->>Laravel: GET /sanctum/csrf-cookie (proxy)
+    Laravel-->>Vite: Cookie CSRF
+    Vite->>Laravel: POST /login (proxy, credentials)
+    Laravel->>MySQL: Valida user (role)
+    MySQL-->>Laravel: User
+    Laravel-->>Vite: JSON user + student (se aluno)
+    Vite->>Vite: setUser(), redirect /admin ou /aluno
+
+    U->>Vite: Navega para /admin/dashboard
+    Vite->>Laravel: GET /api/v1/admin/dashboard (Cookie)
+    Laravel->>Laravel: auth:sanctum, role.admin
+    Laravel->>MySQL: Queries (chart_data)
+    MySQL-->>Laravel: Dados
+    Laravel-->>Vite: JSON chart_data
+    Vite->>U: Renderiza gráficos
 ```
+
+---
+
+## 🔧 Backend (API Laravel)
+
+O **backend** fica na pasta **`backend/`**. É uma API REST em **Laravel 10** que expõe rotas **web** (login, register, logout) e **API v1** (`/api/v1/user`, `/api/v1/admin/*`, `/api/v1/aluno/*`). A autenticação para a API usa **Laravel Sanctum** (sessão/cookies para SPA).
+
+### Responsabilidades do Backend
+
+| Área | Descrição |
+|------|-----------|
+| **Autenticação** | Login único com validação de `role` (admin/student). Cadastro de aluno (público `POST /register`); cadastro de admin (restrito `POST /api/v1/admin/register`). |
+| **Autorização** | Rotas `/api/v1/admin/*` exigem `auth:sanctum` + `role.admin`; `/api/v1/aluno/*` exigem `auth:sanctum` + `role.student`. Middlewares `EnsureUserIsAdmin` e `EnsureUserIsStudent`. |
+| **CRUD (Admin)** | Áreas, Cursos, Professores, Disciplinas, Alunos e Matrículas. Validação via Form Requests; respostas em API Resources; ordenação, paginação e filtro de alunos por nome/e-mail. |
+| **Relatórios** | **ReportService**: relatório por curso (média de idade, aluno mais novo e mais velho) com Carbon. **StudentChartDataService**: dados para gráficos (admin e aluno); labels de mês em pt_BR. |
+| **Perfil do Aluno** | GET/PUT `/api/v1/aluno/profile`; o aluno altera apenas seus próprios dados (nome, e-mail, data de nascimento). |
+
+### Componentes Principais (Backend)
+
+- **Models:** User, Student, Area, Course, Teacher, Discipline, Enrollment. User tem `role` (enum admin/student) e relação 1:1 com Student para alunos.
+- **Controllers:** LoginController, RegisterController (web); API v1 Admin (Area, Course, Teacher, Discipline, Student, Enrollment, Dashboard, Report, RegisterAdmin); API v1 Aluno (Dashboard, Profile).
+- **Services:** ReportService (courseAgesReport), StudentChartDataService (adminChartData, studentChartData, formatMonthLabel).
+- **Repositories:** AreaRepository, CourseRepository, StudentRepository (reuso para relatórios e gráficos).
+- **Form Requests / API Resources:** Validação e serialização padronizadas.
+
+### Endpoints da API (resumo)
+
+- **GET** `/api/v1/user` – Usuário logado (com student se aluno). Autenticado.
+- **GET** `/api/v1/admin/dashboard` – Dados para gráficos do dashboard admin. Admin.
+- **GET** `/api/v1/admin/reports` – Relatório idades por curso + chart_data. Admin.
+- **apiResource** `/api/v1/admin/areas`, `courses`, `teachers`, `disciplines`, `students`, `enrollments`. Admin.
+- **POST** `/api/v1/admin/register` – Cadastrar novo admin. Admin.
+- **GET** `/api/v1/aluno/dashboard` – Dados para gráficos do dashboard aluno. Aluno.
+- **GET/PUT** `/api/v1/aluno/profile` – Ver/atualizar perfil. Aluno.
+
+Rotas web: `GET /`, `GET /docs`, `POST /login`, `POST /register`, `POST /logout` (e variantes `/login/admin`, `/login/aluno`).
+
+### Tecnologias do Backend
+
+- PHP ^8.1, Laravel ^10.10, Laravel Sanctum ^3.3, MySQL (PDO), Composer. Extensões: pdo_mysql, mbstring, zip, etc. (ver backend/Dockerfile).
+
+Para **documentação completa** do backend (arquitetura, modelagem, fluxos, testes), consulte **[backend/README.md](backend/README.md)**.
+
+---
+
+## 🖥️ Frontend (SPA Vue 3)
+
+O **frontend** fica na pasta **`frontend/`**. É uma **Single Page Application** em Vue 3 que consome a API do backend. Toda a experiência do usuário (login, cadastro, dashboards, CRUDs, perfil) é entregue por esta SPA.
+
+### Responsabilidades do Frontend
+
+| Área | Descrição |
+|------|-----------|
+| **Autenticação e Navegação** | Tela única de login; após login, redireciona para `/admin/dashboard` ou `/aluno/dashboard` conforme `user.role`. Router guard (`beforeEach`) garante: não autenticado → `/login`; guest já logado → dashboard do papel; rota de outro papel → redirect. Store Pinia (auth): `user`, `isAdmin`, `isStudent`, `fetchUser`, `logout`, `setUser`. |
+| **Dashboard Admin** | Cards de resumo (alunos, matrículas, cursos, etc.) e grid de gráficos (Bar, Donut, Pie, Line, Treemap). Dados de `GET /api/v1/admin/dashboard`. Labels de mês formatados (`formatMonthChartLabels`) para gráficos de linha; layout responsivo. |
+| **Relatórios Admin** | Tabela (média de idade por curso, mais novo, mais velho) + gráficos. `GET /api/v1/admin/reports`. |
+| **CRUD (Admin)** | Listagens com ordenação e busca (alunos: nome/e-mail). Formulários create/edit para Áreas, Cursos, Professores, Disciplinas, Alunos, Matrículas. Um **Service** por entidade (AreaService, CourseService, etc.). |
+| **Área do Aluno** | Dashboard (Meus cursos, Minha idade, Minhas matrículas) e página Editar cadastro (perfil). `GET/PUT /api/v1/aluno/profile`. |
+| **Tratamento de Erros** | Axios: 401/403 limpa storage e rejeita; 422 normaliza `error.validationErrors` para formulários. Sem redirect no interceptor (evita loop). |
+
+### Componentes Principais (Frontend)
+
+- **Layouts:** AuthLayout (login/register), AdminLayout (sidebar, menu, ícones lucide-vue-next), AlunoLayout (header, Dashboard / Editar cadastro).
+- **Páginas:** auth (Login, Register); admin (Dashboard, Reports, RegisterAdmin, AreaList/Form, CourseList/Form, TeacherList/Form, DisciplineList/Form, StudentList/Form, EnrollmentList/Form); aluno (Dashboard, ProfileEdit).
+- **UI:** AppButton, AppInput, AppCard.
+- **Gráficos (ApexCharts):** BarChart, PieChart, DonutChart, LineChart, TreemapChart, RadarChart, RadialBarChart. Tema dark e responsivos (LineChart com breakpoints para mobile).
+- **Serviços:** AuthService, AdminDashboardService, AreaService, CourseService, TeacherService, DisciplineService, StudentService, EnrollmentService, ReportService, AlunoService.
+
+### Rotas (resumo)
+
+- `/` → redirect para `/login` ou dashboard conforme auth.
+- `/login`, `/register` (AuthLayout, guest).
+- `/admin/dashboard`, `/admin/areas`, `/admin/courses`, … (AdminLayout, requiresAuth, role admin).
+- `/aluno/dashboard`, `/aluno/profile` (AlunoLayout, requiresAuth, role student).
+
+Páginas carregadas sob demanda (`import()`) no router.
+
+### Tecnologias do Frontend
+
+- Vue ^3.4, Vue Router ^4.2 (history), Pinia ^2.1, Axios ^1.6, Vite ^5.0, Tailwind CSS ^3.4, ApexCharts ^4.0 + vue3-apexcharts ^1.4, lucide-vue-next ^0.460.
+
+Para **documentação completa** do frontend (arquitetura, fluxos, estrutura, serviços, componentes), consulte **[frontend/README.md](frontend/README.md)**.
+
+---
+
+## 🗄️ Banco de Dados (MySQL)
+
+O **banco de dados** é **MySQL 8.x** (ou MariaDB compatível). No Docker usa a imagem `mysql:8.0`. Todas as tabelas são criadas pelas **migrations** do Laravel em `backend/database/migrations/`; nenhuma tabela é criada manualmente.
+
+### Modelagem e Tabelas
+
+| Tabela | Descrição | Relacionamentos principais |
+|--------|-----------|-----------------------------|
+| **users** | Usuários do sistema (login). Campo `role`: `admin` ou `student`. | 1:1 com `students` (quando role = student). |
+| **students** | Cadastro de aluno (nome, email, birth_date). Vinculado a um `user`. | user_id → users; N:N com courses via enrollments. |
+| **areas** | Áreas de conhecimento (ex.: Biologia, Física). | 1:N com courses. |
+| **courses** | Cursos (título, descrição, start_date, end_date, area_id). | area_id → areas; 1:N disciplines; N:N students via enrollments. |
+| **teachers** | Professores (nome, email). | 1:N com disciplines. |
+| **disciplines** | Disciplinas (título, descrição, course_id, teacher_id). | course_id → courses; teacher_id → teachers. |
+| **enrollments** | Matrículas (student_id, course_id). Unique (student_id, course_id). | student_id → students; course_id → courses. |
+
+Além dessas, existem tabelas Laravel: `sessions`, `cache`, `failed_jobs`, `personal_access_tokens` (Sanctum), `password_reset_tokens`.
+
+### Diagrama ER (resumo)
+
+```mermaid
+erDiagram
+    users ||--o| students : "1:1 (aluno)"
+    areas ||--o{ courses : "tem muitos"
+    courses ||--o{ disciplines : "tem muitas"
+    teachers ||--o{ disciplines : "tem muitas"
+    students }o--o{ courses : "matrículas"
+    enrollments }o--|| students : "pertence a"
+    enrollments }o--|| courses : "pertence a"
+
+    users { bigint id PK, string name, string email UK, string password, enum role, timestamps }
+    students { bigint id PK, string name, string email, date birth_date, bigint user_id FK, timestamps }
+    areas { bigint id PK, string name, timestamps }
+    courses { bigint id PK, string title, text description, date start_date, date end_date, bigint area_id FK, timestamps }
+    teachers { bigint id PK, string name, string email, timestamps }
+    disciplines { bigint id PK, string title, text description, bigint course_id FK, bigint teacher_id FK, timestamps }
+    enrollments { bigint id PK, bigint student_id FK, bigint course_id FK, timestamps }
+```
+
+### Migrations e Seed
+
+- **Ordem das migrations:** users → add_role_to_users → areas → teachers → students → courses → disciplines → enrollments (+ tabelas Laravel).
+- **Seed (DevelopmentSeeder):** Cria usuário **admin** (`admin@plataforma.test` / `password`), usuário **aluno** com registro em `students` (`emanuel@plataforma.test` / `password`), áreas (Biologia, Física, Química, Matemática), cursos, professores, disciplinas e matrículas de exemplo.
+
+O nome do banco no Docker é **`plataforma`** (`MYSQL_DATABASE` / `DB_DATABASE`). Localmente pode ser o mesmo ou outro; crie o banco e configure `DB_DATABASE` no `.env` do backend.
+
+---
+
+## 🔄 Fluxo Completo: Do Usuário ao Banco
+
+1. **Usuário** acessa http://localhost:5173 (frontend). O Vue Router verifica se há usuário logado (`auth.fetchUser()` → GET /api/v1/user). Se não houver e a rota exigir auth, redireciona para `/login`.
+2. **Login:** Frontend chama GET /sanctum/csrf-cookie e POST /login. Backend valida credenciais no MySQL (tabela `users`), verifica `role`, retorna JSON com user (e student se aluno). Frontend chama `setUser(user)` e redireciona para `/admin/dashboard` ou `/aluno/dashboard`.
+3. **Dashboard Admin:** Frontend chama GET /api/v1/admin/dashboard (com cookie de sessão). Backend aplica `auth:sanctum` e `role.admin`, chama StudentChartDataService que consulta MySQL (users, students, courses, enrollments, areas, disciplines, teachers) e monta `chart_data`. Resposta JSON é renderizada em gráficos (ApexCharts) no frontend.
+4. **CRUD (ex.: listar áreas):** Frontend chama GET /api/v1/admin/areas. Backend valida auth e role, AreaController usa Model Area e API Resource, consulta MySQL (tabela `areas`) e retorna JSON. Frontend exibe tabela.
+5. **Persistência:** Qualquer create/update/delete no frontend resulta em POST/PUT/DELETE na API; o backend valida (Form Request), atualiza o MySQL e retorna o recurso (API Resource).
 
 ---
 
 ## 📌 Pré-requisitos
 
-### Para rodar com Docker (recomendado para backend + banco)
+### Para rodar com Docker (backend + MySQL)
 
-- **Docker Desktop** instalado e em execução ([download](https://www.docker.com/products/docker-desktop/)).
-- **Node.js** (v18 ou superior) e **npm** – para rodar o frontend localmente.
+- **Docker Desktop** instalado e em execução.
+- **Node.js** (v18+) e **npm** – para rodar o frontend localmente.
 
 ### Para rodar tudo local (sem Docker)
 
@@ -103,24 +294,55 @@ A Plataforma Prof. Jubilut é composta por:
 
 ## ⚡ Quick Start (Docker + Frontend)
 
-A forma mais rápida é: **backend e MySQL no Docker**, **frontend na sua máquina**.
+1. **Subir backend e MySQL com Docker**
 
-### 1. Subir backend e MySQL com Docker
+   **Windows (PowerShell):**
+   ```powershell
+   .\run.ps1
+   ```
 
-**Windows (PowerShell):**
-```powershell
-.\run.ps1
-```
+   **Linux / macOS:**
+   ```bash
+   chmod +x run.sh
+   ./run.sh
+   ```
 
-**Linux / macOS:**
+   O script roda `docker compose up -d --build`, aguarda o MySQL e o app (migrate + seed). Backend em **http://127.0.0.1:8000**.
+
+2. **Subir o frontend**
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+   Acesse **http://localhost:5173**. O Vite faz proxy de `/api`, `/login`, `/register`, `/logout` e `/sanctum` para o backend.
+
+3. **Acessar**
+   - **Interface:** http://localhost:5173  
+   - **Admin:** `admin@plataforma.test` / `password`  
+   - **Aluno:** `emanuel@plataforma.test` / `password`  
+
+Para parar: `docker compose down`. Logs: `docker compose logs -f app`.
+
+---
+
+## 🔧 Configuração e Execução
+
+### Backend (local, sem Docker)
+
 ```bash
-chmod +x run.sh
-./run.sh
+cd backend
+composer install
+copy .env.example .env   # Windows  |  cp .env.example .env   # Linux/macOS
+php artisan key:generate
+# Configurar DB_* no .env (DB_HOST, DB_DATABASE, DB_USERNAME, DB_PASSWORD)
+php artisan migrate --seed
+php artisan serve
 ```
 
-O script verifica o Docker, faz `docker compose up -d --build`, aguarda o MySQL ficar saudável e o app rodar migrações e seed. Ao final, o backend estará em **http://127.0.0.1:8000**.
+Backend em **http://127.0.0.1:8000**. Documentação completa: **[backend/README.md](backend/README.md)**.
 
-### 2. Subir o frontend
+### Frontend (desenvolvimento)
 
 ```bash
 cd frontend
@@ -128,202 +350,45 @@ npm install
 npm run dev
 ```
 
-Acesse **http://localhost:5173**. O Vite já está configurado para fazer proxy de `/api`, `/login`, `/register`, `/logout` e `/sanctum` para `http://127.0.0.1:8000`, então a SPA conseguirá fazer login e chamar a API.
+Frontend em **http://localhost:5173**. Proxy em `vite.config.js` aponta para `http://127.0.0.1:8000`. Documentação completa: **[frontend/README.md](frontend/README.md)**.
 
-### 3. Acessar a aplicação
-
-- **URL da interface:** http://localhost:5173  
-- **Admin:** `admin@plataforma.test` / `password`  
-- **Aluno:** `emanuel@plataforma.test` / `password`  
-
-Para parar os containers: `docker compose down`.  
-Para ver logs do backend: `docker compose logs -f app`.
-
----
-
-## 🔧 Backend: Configuração e Execução
-
-O backend fica na pasta **`backend/`**. Documentação completa em **[backend/README.md](backend/README.md)**.
-
-### Execução com Docker
-
-O container **plataforma-app** é construído a partir de `backend/Dockerfile`. Ele:
-
-- Usa PHP 8.2-cli e instala extensões (pdo_mysql, mbstring, zip, etc.) e Composer.
-- Copia o código, usa `backend/.env.docker` como base do `.env` (no entrypoint), roda `composer install`, e no **docker-entrypoint.sh** espera o MySQL, gera `APP_KEY` se necessário, executa `php artisan migrate --force` e `php artisan db:seed --force`, e inicia `php artisan serve --host=0.0.0.0 --port=8000`.
-
-As variáveis de ambiente do backend no Docker vêm do `docker-compose.yml` e do `.env.docker` (copiado para `.env` na imagem). Não é obrigatório ter um `.env` na pasta `backend/` ao usar apenas Docker.
-
-### Execução local (sem Docker)
-
-1. Entre na pasta do backend:
-   ```bash
-   cd backend
-   ```
-2. Instale as dependências:
-   ```bash
-   composer install
-   ```
-3. Crie o arquivo de ambiente:
-   ```bash
-   copy .env.example .env   # Windows
-   cp .env.example .env     # Linux/macOS
-   ```
-4. Gere a chave da aplicação:
-   ```bash
-   php artisan key:generate
-   ```
-5. Configure o banco no **.env** (veja [Variáveis de Ambiente](#-variáveis-de-ambiente-env)):
-   - `DB_CONNECTION=mysql`
-   - `DB_HOST=127.0.0.1` (ou o host do seu MySQL)
-   - `DB_PORT=3306`
-   - `DB_DATABASE=plataforma` (ou outro nome; crie o banco no MySQL)
-   - `DB_USERNAME=root` (ou seu usuário)
-   - `DB_PASSWORD=sua_senha`
-6. Rode as migrações e o seed:
-   ```bash
-   php artisan migrate --seed
-   ```
-7. Inicie o servidor:
-   ```bash
-   php artisan serve
-   ```
-   O backend ficará em **http://127.0.0.1:8000**.
-
-Se o frontend rodar em outra porta ou domínio, ajuste `FRONTEND_URL` no `.env` do backend (usado em redirecionamentos e CORS/Sanctum).
-
----
-
-## 🖥️ Frontend: Configuração e Execução
-
-O frontend fica na pasta **`frontend/`**. Documentação completa em **[frontend/README.md](frontend/README.md)**.
-
-### Execução em desenvolvimento
-
-1. Entre na pasta do frontend:
-   ```bash
-   cd frontend
-   ```
-2. Instale as dependências:
-   ```bash
-   npm install
-   ```
-3. Inicie o servidor de desenvolvimento:
-   ```bash
-   npm run dev
-   ```
-   A aplicação abrirá em **http://localhost:5173** (porta configurável no `vite.config.js`).
-
-Em modo dev, o **Vite** faz proxy para o backend (veja `frontend/vite.config.js`):
-
-- `/api` → `http://127.0.0.1:8000`
-- `/sanctum` → `http://127.0.0.1:8000`
-- `/login`, `/register`, `/logout` → `http://127.0.0.1:8000`
-
-Assim, não é obrigatório definir **VITE_API_URL** no frontend em desenvolvimento: a baseURL do Axios pode ficar vazia e as requisições relativas (ex.: `/api/v1/user`) serão enviadas ao mesmo host (localhost:5173), e o Vite repassa para a porta 8000. Os cookies de sessão do Sanctum funcionam porque o proxy mantém o mesmo “origin” da perspectiva do navegador.
-
-### Variável de ambiente do frontend (opcional em dev)
-
-- **VITE_API_URL** – URL base da API. Em desenvolvimento com proxy, pode ficar vazia ou não definida. Em produção, se a SPA for servida de outro domínio, defina aqui a URL completa da API (ex.: `https://api.seudominio.com`). Crie um arquivo **`frontend/.env`** ou **`frontend/.env.production`** conforme necessário:
-  ```env
-  VITE_API_URL=http://127.0.0.1:8000
-  ```
-  Só variáveis com prefixo `VITE_` são expostas ao código pelo Vite.
-
-### Build para produção
+### Build do frontend para produção
 
 ```bash
 cd frontend
 npm run build
 ```
 
-A saída fica em **`frontend/dist/`**. Esses arquivos podem ser servidos pelo Laravel (copiando para `backend/public/` e configurando rotas), por Nginx ou por outro servidor. Em produção, configure o backend (CORS, Sanctum stateful domains) para o domínio onde a SPA será servida e, se necessário, defina **VITE_API_URL** no build.
+Saída em **`frontend/dist/`**. Servir por Laravel, Nginx ou outro. Definir **VITE_API_URL** no build se a SPA estiver em outro domínio; configurar CORS e SANCTUM_STATEFUL_DOMAINS no backend.
 
 ---
 
-## 🗄️ Banco de Dados (MySQL)
-
-- **Motor:** MySQL 8.x (ou MariaDB compatível). No Docker usa a imagem `mysql:8.0`.
-- **Nome do banco:** No Docker é **`plataforma`** (definido em `MYSQL_DATABASE` e `DB_DATABASE`). Localmente pode usar o mesmo nome ou outro (ex.: `laravel`); crie o banco manualmente e preencha `DB_DATABASE` no `.env` do backend.
-- **Tabelas:** Todas são criadas pelas **migrations** do Laravel em `backend/database/migrations/`. Ordem lógica: `users` (com coluna `role`), `areas`, `teachers`, `students`, `courses` (foreign key para `areas`), `disciplines` (para `courses` e `teachers`), `enrollments` (pivot entre `students` e `courses`), além das tabelas padrão (sessions, cache, failed_jobs, personal_access_tokens, etc.).
-- **Seed:** O **DevelopmentSeeder** (chamado por `DatabaseSeeder`) cria:
-  - Um usuário **admin**: `admin@plataforma.test` / senha `password`.
-  - Um usuário **aluno** (e registro em `students`): `emanuel@plataforma.test` / senha `password`.
-  - Áreas (Biologia, Física, Química, Matemática), cursos, professores, disciplinas e matrículas de exemplo.
-
-Após `php artisan migrate --seed` (ou o entrypoint no Docker), o sistema já pode ser usado com as credenciais acima.
-
----
-
-## 🐳 Docker: Serviços e Scripts
-
-O arquivo **`docker-compose.yml`** na raiz define dois serviços:
-
-| Serviço | Imagem / Build | Porta | Descrição |
-|--------|----------------|-------|-----------|
-| **app** | Build: `./backend` (Dockerfile) | 8000 | Aplicação Laravel. Depende do MySQL estar saudável. Variáveis de ambiente (APP_*, DB_*) definidas no compose. |
-| **mysql** | mysql:8.0 | 3306 | Banco MySQL. Volume `mysql_data` persiste os dados. Healthcheck para o app só subir quando o MySQL aceitar conexão. |
-
-**Variáveis do app no compose:**  
-`APP_NAME`, `APP_ENV`, `APP_DEBUG`, `APP_URL`, `DB_CONNECTION`, `DB_HOST=mysql`, `DB_PORT`, `DB_DATABASE=plataforma`, `DB_USERNAME=root`, `DB_PASSWORD=secret`.
-
-O **backend** usa ainda o **docker-entrypoint.sh**, que:
-
-1. Espera o MySQL ficar acessível (PDO).
-2. Gera `APP_KEY` se estiver vazio.
-3. Executa `php artisan migrate --force` e `php artisan db:seed --force`.
-4. Inicia o comando passado (por padrão `php artisan serve --host=0.0.0.0 --port=8000`).
-
-**Scripts de conveniência:**
-
-- **run.ps1** (Windows): Verifica Docker, roda `docker compose up -d --build`, aguarda alguns segundos, verifica se os containers estão up e se o app responde em http://127.0.0.1:8000; exibe as credenciais e comandos para parar/ver logs.
-- **run.sh** (Linux/macOS): Equivalente em shell.
-
-Comandos úteis:
-
-```bash
-docker compose up -d --build   # Subir em background
-docker compose down           # Parar e remover containers
-docker compose logs -f app    # Logs do backend
-docker compose logs -f mysql  # Logs do MySQL
-```
-
----
-
-## 🔐 Variáveis de Ambiente (.env)
+## 🔐 Variáveis de Ambiente
 
 ### Backend (`backend/.env`)
 
-Copie de **`backend/.env.example`**. As principais para rodar a aplicação:
-
 | Variável | Descrição | Exemplo (local) | Exemplo (Docker) |
 |----------|-----------|------------------|------------------|
-| **APP_NAME** | Nome da aplicação | Laravel | Plataforma Prof. Jubilut |
-| **APP_ENV** | Ambiente | local | local |
-| **APP_KEY** | Chave de criptografia | (vazio; rodar `php artisan key:generate`) | (gerado no entrypoint) |
-| **APP_DEBUG** | Modo debug | true | true |
-| **APP_URL** | URL do backend | http://localhost:8000 | http://localhost:8000 |
-| **FRONTEND_URL** | URL do frontend (redirecionamentos/CORS) | http://localhost:5173 | http://localhost:5173 |
-| **DB_CONNECTION** | Driver do banco | mysql | mysql |
-| **DB_HOST** | Host do MySQL | 127.0.0.1 | mysql |
-| **DB_PORT** | Porta do MySQL | 3306 | 3306 |
-| **DB_DATABASE** | Nome do banco | plataforma ou laravel | plataforma |
-| **DB_USERNAME** | Usuário MySQL | root | root |
-| **DB_PASSWORD** | Senha MySQL | (sua senha) | secret |
+| APP_NAME | Nome da aplicação | Laravel | Plataforma Prof. Jubilut |
+| APP_KEY | Chave de criptografia | (php artisan key:generate) | (gerado no entrypoint) |
+| APP_URL | URL do backend | http://localhost:8000 | http://localhost:8000 |
+| FRONTEND_URL | URL do frontend (CORS/Sanctum) | http://localhost:5173 | http://localhost:5173 |
+| DB_CONNECTION | Driver | mysql | mysql |
+| DB_HOST | Host MySQL | 127.0.0.1 | mysql |
+| DB_PORT | Porta MySQL | 3306 | 3306 |
+| DB_DATABASE | Nome do banco | plataforma | plataforma |
+| DB_USERNAME | Usuário MySQL | root | root |
+| DB_PASSWORD | Senha MySQL | (sua senha) | secret |
 
-**SESSION_DRIVER** e **SESSION_LIFETIME** são usados para sessão web; para API com Sanctum stateful, o domínio do frontend deve estar em **SANCTUM_STATEFUL_DOMAINS** (no `config/sanctum.php` o padrão já inclui localhost:5173 e 127.0.0.1:8000). **CORS** é configurado em `config/cors.php` e pode usar `FRONTEND_URL` se necessário.
-
-No Docker, o backend pode usar o arquivo **`backend/.env.docker`** como referência (DB_HOST=mysql, DB_DATABASE=plataforma, DB_PASSWORD=secret); o entrypoint copia para `.env` dentro do container se existir.
+No Docker o backend pode usar **`backend/.env.docker`** como referência (DB_HOST=mysql, DB_PASSWORD=secret).
 
 ### Frontend (`frontend/.env`)
 
-Opcional. A única variável usada pelo código (em `src/api/axios.js`) é:
-
 | Variável | Descrição | Desenvolvimento | Produção |
 |----------|-----------|------------------|----------|
-| **VITE_API_URL** | URL base da API | Vazio (proxy Vite) | URL completa da API (ex.: https://api.exemplo.com) |
+| VITE_API_URL | URL base da API | Vazio (proxy) | URL completa da API |
 
-Arquivos suportados: `.env`, `.env.local`, `.env.development`, `.env.production`. Sempre com prefixo **VITE_** para serem expostos ao build.
+Apenas variáveis com prefixo **VITE_** são expostas pelo Vite.
 
 ---
 
@@ -336,7 +401,7 @@ Criadas pelo **DevelopmentSeeder** após `php artisan db:seed` (ou ao subir o Do
 | **Administrador** | admin@plataforma.test | password |
 | **Aluno** | emanuel@plataforma.test | password |
 
-Use a **interface em http://localhost:5173** (frontend) para fazer login. O admin é redirecionado para `/admin/dashboard` e o aluno para `/aluno/dashboard`.
+Use a interface em **http://localhost:5173** para fazer login. Admin → `/admin/dashboard`; aluno → `/aluno/dashboard`.
 
 ---
 
@@ -344,35 +409,30 @@ Use a **interface em http://localhost:5173** (frontend) para fazer login. O admi
 
 ```
 TesteInfityworksPhp/
-├── README.md                 # Este arquivo (visão geral, como rodar, .env, Docker)
-├── docker-compose.yml       # Serviços app (Laravel) + mysql
-├── run.ps1                  # Script Windows: sobe Docker e valida
-├── run.sh                   # Script Linux/macOS: idem
-├── backend/                 # API Laravel 10
-│   ├── README.md            # Documentação detalhada do backend
-│   ├── .env.example         # Modelo de .env
-│   ├── .env.docker          # Referência para ambiente Docker
-│   ├── Dockerfile           # Imagem PHP 8.2 + Composer + app
-│   ├── docker-entrypoint.sh # Espera MySQL, migrate, seed, serve
-│   ├── app/                 # Models, Controllers, Services, Middleware, etc.
-│   ├── config/              # Configurações (database, auth, sanctum, cors, etc.)
-│   ├── database/            # migrations, seeders, factories
-│   ├── routes/              # web.php, api.php
-│   └── ...
-└── frontend/                # SPA Vue 3
-    ├── README.md            # Documentação detalhada do frontend
-    ├── index.html
-    ├── vite.config.js       # Proxy para o backend em dev
-    ├── package.json
+├── README.md                 # Este arquivo (visão geral, backend, frontend, MySQL, como rodar)
+├── docker-compose.yml        # Serviços app (Laravel) + mysql
+├── run.ps1                   # Script Windows: sobe Docker e valida
+├── run.sh                    # Script Linux/macOS: idem
+├── backend/                  # API Laravel 10
+│   ├── README.md             # Documentação detalhada do backend
+│   ├── .env.example, .env.docker
+│   ├── Dockerfile, docker-entrypoint.sh
+│   ├── app/                  # Models, Controllers, Services, Repositories, Middleware, etc.
+│   ├── config/               # database, auth, sanctum, cors, etc.
+│   ├── database/             # migrations, seeders, factories
+│   ├── routes/               # web.php, api.php
+│   └── tests/
+└── frontend/                 # SPA Vue 3
+    ├── README.md             # Documentação detalhada do frontend
+    ├── index.html, vite.config.js, package.json
     ├── src/
-    │   ├── main.js
-    │   ├── App.vue
-    │   ├── api/             # axios.js
-    │   ├── stores/          # auth (Pinia)
-    │   ├── router/          # Rotas e guard
-    │   ├── services/       # AuthService, AreaService, etc.
+    │   ├── main.js, App.vue, style.css
+    │   ├── api/axios.js
+    │   ├── stores/auth.js
+    │   ├── router/index.js
+    │   ├── services/         # AuthService, AdminDashboardService, AreaService, ...
     │   ├── layouts/         # AuthLayout, AdminLayout, AlunoLayout
-    │   ├── components/      # ui (AppButton, AppInput, AppCard), charts (Bar, Pie, etc.)
+    │   ├── components/      # ui (AppButton, AppInput, AppCard), charts (Bar, Pie, Line, ...)
     │   └── pages/           # auth, admin, aluno
     └── ...
 ```
@@ -381,9 +441,8 @@ TesteInfityworksPhp/
 
 ## 📚 Documentação Detalhada
 
-- **[backend/README.md](backend/README.md)** – Visão geral do backend, arquitetura, modelagem do banco, autenticação e papéis (admin/aluno), fluxo de requisições, componentes (Models, Controllers, Services, Repositories, Form Requests, API Resources), endpoints da API, serviços e regras de negócio, testes, tecnologias e execução local/Docker.
-- **[backend/docs/ROLES-E-AUTH.md](backend/docs/ROLES-E-AUTH.md)** – Explicação de como o sistema separa admin e aluno (cadastro, login, rotas da API e do frontend).
-- **[frontend/README.md](frontend/README.md)** – Visão geral do frontend, arquitetura da SPA, fluxo de autenticação e navegação, estrutura de pastas, API client e interceptors, store Pinia (auth), serviços (camada de API), layouts e rotas, componentes de UI e gráficos, páginas por área, tecnologias, variáveis de ambiente e build.
+- **[backend/README.md](backend/README.md)** – Backend: visão geral, arquitetura, modelagem do banco, autenticação e papéis, fluxo de requisições, componentes (Models, Controllers, Services, Repositories), endpoints, regras de negócio, testes, tecnologias, execução local e Docker.
+- **[frontend/README.md](frontend/README.md)** – Frontend: visão geral, arquitetura da SPA, fluxo de autenticação e navegação, estrutura de pastas, API client e interceptors, store Pinia, serviços, layouts e rotas, componentes de UI e gráficos, páginas por área, tecnologias, variáveis de ambiente e build.
 
 ---
 
@@ -391,24 +450,19 @@ TesteInfityworksPhp/
 
 ### Backend não responde após subir o Docker
 
-- Confira se o container está rodando: `docker compose ps`.
-- Veja os logs: `docker compose logs -f app`. O entrypoint espera o MySQL; se o MySQL demorar, o app pode ainda estar em “Aguardando MySQL…”.
-- Verifique o healthcheck do MySQL: `docker compose logs mysql`. Se o MySQL não ficar healthy, o app não inicia.
+- Verifique: `docker compose ps` e `docker compose logs -f app`. O entrypoint espera o MySQL; se o MySQL demorar, o app pode ainda estar aguardando.
 
 ### Erro de conexão com o banco (local)
 
-- Confirme que o MySQL está rodando e que `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME` e `DB_PASSWORD` no `backend/.env` estão corretos.
-- Crie o banco manualmente se não existir: `CREATE DATABASE plataforma;` (ou o nome que colocou em `DB_DATABASE`).
+- Confirme que o MySQL está rodando e que `DB_HOST`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` no `backend/.env` estão corretos. Crie o banco: `CREATE DATABASE plataforma;` se não existir.
 
-### Frontend não consegue fazer login ou chama API e dá 401/404
+### Frontend não consegue fazer login ou retorna 401/404
 
-- Em desenvolvimento, o backend deve estar acessível em **http://127.0.0.1:8000** e o Vite em **http://localhost:5173**. O proxy em `frontend/vite.config.js` aponta para `http://127.0.0.1:8000`. Se o backend estiver em outra porta, altere o `target` do proxy.
-- Se estiver usando produção (build estático), defina **VITE_API_URL** no build e configure **CORS** e **SANCTUM_STATEFUL_DOMAINS** no backend para o domínio da SPA.
-- Para login com sessão, o frontend deve chamar primeiro `GET /sanctum/csrf-cookie` (AuthService.getCsrfCookie()) e depois POST /login com `withCredentials: true` (já configurado no axios).
+- Backend deve estar em **http://127.0.0.1:8000** e o proxy em `frontend/vite.config.js` apontando para ele. Para login com sessão, o frontend chama `GET /sanctum/csrf-cookie` e depois POST /login com `withCredentials: true` (já configurado no axios). Em produção, defina **VITE_API_URL** e configure **CORS** e **SANCTUM_STATEFUL_DOMAINS** no backend.
 
-### “Acesso não autorizado” ou redirecionamento para login ao acessar /admin ou /aluno
+### "Acesso não autorizado" ou redirect para login em /admin ou /aluno
 
-- O guard do router e o backend verificam o papel. Se o usuário logado for aluno, não pode acessar rotas de admin e vice-versa. Faça logout e entre com a conta correta (admin@plataforma.test ou emanuel@plataforma.test).
+- O guard e o backend verificam o papel. Aluno não acessa rotas de admin e vice-versa. Use a conta correta (admin@plataforma.test ou emanuel@plataforma.test).
 
 ### Limpar tudo e recomeçar (Docker)
 
@@ -417,4 +471,6 @@ docker compose down -v   # Remove containers e volumes (apaga dados do MySQL)
 docker compose up -d --build
 ```
 
-Agora você tem o README geral com visão do projeto, backend, frontend, como rodar (Docker e local), .env, banco de dados, Docker e links para a documentação detalhada de cada parte.
+---
+
+**Resumo:** A Plataforma Prof. Jubilut é composta pelo **Backend** (API Laravel 10 + Sanctum + MySQL), pelo **Frontend** (SPA Vue 3 + Pinia + ApexCharts) e pelo **Banco de Dados MySQL** (migrations e seed). Este README descreve a visão geral, a arquitetura, o que cada parte faz e como executar o projeto. Para detalhes de implementação, consulte os READMEs em `backend/` e `frontend/`.

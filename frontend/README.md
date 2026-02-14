@@ -1,15 +1,15 @@
 # **Plataforma Prof. Jubilut – Frontend (Vue 3 SPA)**
 
-Bem-vindo ao **frontend** da Plataforma Prof. Jubilut: uma **SPA (Single Page Application)** em **Vue 3** que consome a API REST do backend Laravel. O frontend oferece duas áreas distintas — **Administração** e **Aluno** — com rotas protegidas por papel (`admin` e `student`), autenticação via **Laravel Sanctum** (sessão/cookies), dashboards com gráficos (**ApexCharts**), CRUD completo para áreas, cursos, professores, disciplinas, alunos e matrículas (admin), relatórios com tabela e gráficos, e perfil do aluno (edição de nome, e-mail e data de nascimento). A interface é responsiva (**Tailwind CSS**) e preparada para uso em dispositivos móveis.
+Bem-vindo ao **frontend** da Plataforma Prof. Jubilut: uma **SPA (Single Page Application)** em **Vue 3** que consome a API REST do backend Laravel. O sistema foi projetado como o **único** cliente de interface da aplicação: não há UI no backend além da página inicial e da documentação; todo o fluxo de login, cadastro, dashboards e CRUDs é feito nesta SPA.
 
-O frontend é o **único** cliente de interface da aplicação: não há UI no backend além da página inicial e da documentação; todo o fluxo de login, cadastro, dashboards e CRUDs é feito nesta SPA, com o **Vite** fazendo proxy das requisições para o backend durante o desenvolvimento.
+O frontend oferece duas áreas distintas — **Administração** e **Aluno** — com rotas protegidas por papel (`admin` e `student`), autenticação via **Laravel Sanctum** (sessão/cookies), dashboards com gráficos (**ApexCharts** via vue3-apexcharts), CRUD completo para áreas, cursos, professores, disciplinas, alunos e matrículas (admin), relatórios com tabela e gráficos, e perfil do aluno (edição de nome, e-mail e data de nascimento). A interface é responsiva (**Tailwind CSS**) e preparada para uso em PC e dispositivos móveis. O **Vite** faz proxy das requisições para o backend durante o desenvolvimento.
 
 ## 📋 Índice
 
 - [Visão Geral](#-visão-geral)
 - [Arquitetura do Frontend](#-arquitetura-do-frontend)
 - [Fluxo de Autenticação e Navegação](#-fluxo-de-autenticação-e-navegação)
-- [Estrutura de Pastas e Componentes](#-estrutura-de-pastas-e-componentes)
+- [Estrutura de Pastas e Arquivos](#-estrutura-de-pastas-e-arquivos)
 - [API Client e Tratamento de Erros](#-api-client-e-tratamento-de-erros)
 - [Store de Autenticação (Pinia)](#-store-de-autenticação-pinia)
 - [Serviços (Camada de API)](#-serviços-camada-de-api)
@@ -26,9 +26,9 @@ O frontend é o **único** cliente de interface da aplicação: não há UI no b
 
 O frontend da Plataforma Prof. Jubilut oferece:
 
-1. **🔐 Autenticação e Redirecionamento por Papel:** Tela única de login (`/login`); após o login, o usuário é redirecionado para `/admin/dashboard` ou `/aluno/dashboard` conforme `user.role` retornado pelo backend. O **router guard** (`beforeEach`) garante: usuário não autenticado em rota que exige auth → redireciona para `/login`; usuário autenticado em rota `guest` → redireciona para o dashboard do seu papel; acesso a rota de outro papel (ex.: admin em `/aluno/*`) → redireciona para o dashboard correto. O store **auth** (Pinia) expõe `isAdmin`, `isStudent`, `userName` e centraliza `fetchUser`, `login`, `logout`.
+1. **🔐 Autenticação e Redirecionamento por Papel:** Tela única de login (`/login`); após o login, o usuário é redirecionado para `/admin/dashboard` ou `/aluno/dashboard` conforme `user.role` retornado pelo backend. O **router guard** (`beforeEach`) garante: usuário não autenticado em rota que exige auth → redireciona para `/login`; usuário autenticado em rota `guest` → redireciona para o dashboard do seu papel; acesso a rota de outro papel (ex.: admin em `/aluno/*`) → redireciona para o dashboard correto. O store **auth** (Pinia) expõe `isAdmin`, `isStudent`, `userName` e centraliza `fetchUser`, `login`, `logout`, `setUser`.
 
-2. **📊 Dashboard Admin:** Página com resumo em cards (alunos, matrículas, cursos, professores, áreas, disciplinas) e grid de gráficos: alunos por curso, idade média por curso, alunos por faixa etária (donut), matrículas por curso (pie), alunos por área (treemap), matrículas nos últimos 6 meses (line), novos alunos por mês (line), disciplinas por curso – top 10 (bar). Dados vindos de `GET /api/v1/admin/dashboard` (chart_data). Visual em tema escuro com cards em “glass” e grid responsivo.
+2. **📊 Dashboard Admin:** Página com resumo em cards (alunos, matrículas, cursos, professores, áreas, disciplinas) e grid de gráficos: alunos por curso, idade média por curso, alunos por faixa etária (donut), matrículas por curso (pie), alunos por área (treemap), matrículas nos últimos 6 meses (line), novos alunos por mês (line), disciplinas por curso – top 10 (bar). Dados vindos de `GET /api/v1/admin/dashboard` (chart_data). Labels de mês são formatados no frontend (`formatMonthChartLabels`) para exibição consistente nos gráficos de linha. Visual em tema escuro com cards em “glass” e grid responsivo.
 
 3. **📈 Relatórios Admin:** Página de relatórios com tabela (média de idade por curso, aluno mais novo e mais velho) e os mesmos dados de gráficos do dashboard, consumindo `GET /api/v1/admin/reports`.
 
@@ -36,9 +36,9 @@ O frontend da Plataforma Prof. Jubilut oferece:
 
 5. **👤 Área do Aluno:** Dashboard com três blocos: **Meus cursos** (donut), **Minha idade** (número + barra), **Minhas matrículas** (pie). Página **Editar cadastro** (perfil) com formulário para nome, e-mail e data de nascimento, consumindo `GET/PUT /api/v1/aluno/profile`. O aluno só acessa suas próprias informações.
 
-6. **🎨 Componentes Reutilizáveis:** Botões (AppButton), inputs (AppInput), cards (AppCard) e uma suíte de gráficos (BarChart, PieChart, DonutChart, LineChart, TreemapChart, RadarChart, RadialBarChart) baseados em **ApexCharts** (vue3-apexcharts), com suporte a tema escuro, labels truncados e layout responsivo.
+6. **🎨 Componentes Reutilizáveis:** Botões (AppButton), inputs (AppInput), cards (AppCard) e uma suíte de gráficos (BarChart, PieChart, DonutChart, LineChart, TreemapChart, RadarChart, RadialBarChart) baseados em **ApexCharts** (vue3-apexcharts), com suporte a tema escuro, labels truncados e layout responsivo (incluindo ajustes para gráficos de linha em mobile).
 
-7. **🛡️ Tratamento Global de Erros:** O cliente **Axios** (api/axios.js) possui interceptor de resposta: em 401/403 limpa armazenamento local e rejeita com mensagem; em 422 normaliza erros de validação em `error.validationErrors`. O guard do router não redireciona dentro do interceptor para evitar loops (ERR_TOO_MANY_REDIRECTS).
+7. **🛡️ Tratamento Global de Erros:** O cliente **Axios** (`api/axios.js`) possui interceptor de resposta: em 401/403 limpa armazenamento local e rejeita com mensagem; em 422 normaliza erros de validação em `error.validationErrors`. O guard do router não redireciona dentro do interceptor para evitar loops (ERR_TOO_MANY_REDIRECTS).
 
 ### 🎯 Diferenciais
 
@@ -53,7 +53,7 @@ O frontend da Plataforma Prof. Jubilut oferece:
 
 O frontend é uma SPA Vue 3 com **Vue Router** (history mode), **Pinia** (store de auth) e **Axios** (instância configurada com baseURL, credentials e interceptors). As páginas são organizadas por contexto: **auth** (login, register), **admin** (dashboard, CRUDs, reports, register admin) e **aluno** (dashboard, profile). Cada área usa um **Layout** (AuthLayout, AdminLayout, AlunoLayout) que envolve o `<router-view />` e fornece cabeçalho, menu e área de conteúdo.
 
-### Diagrama da Arquitetura
+### Diagrama da Arquitetura Geral
 
 ```mermaid
 graph TB
@@ -69,12 +69,12 @@ graph TB
     end
 
     subgraph "Store Pinia"
-        F[auth store<br/>user, isAdmin, isStudent, login, logout, fetchUser]
+        F[auth store<br/>user, isAdmin, isStudent, login, logout, fetchUser, setUser]
     end
 
     subgraph "API Layer"
         G[axios instance<br/>baseURL, withCredentials, interceptors]
-        H[AuthService, AreaService, CourseService, ...]
+        H[AuthService, AdminDashboardService, AreaService, CourseService, ...]
     end
 
     subgraph "Layouts"
@@ -119,6 +119,88 @@ graph TB
     H --> G
     G --> Q
     F --> G
+
+    style A fill:#e1f5fe
+    style F fill:#e8f5e9
+    style G fill:#fff3e0
+    style Q fill:#fce4ec
+```
+
+### Diagrama do Fluxo de Login e Navegação
+
+```mermaid
+sequenceDiagram
+    participant U as Usuário
+    participant R as Router
+    participant A as Auth Store
+    participant L as Login.vue
+    participant Api as Axios / Backend
+
+    Note over U, Api: Primeira visita (rota protegida)
+
+    U->>R: Acessa /admin/dashboard
+    R->>A: beforeEach: userFetched?
+    A->>Api: fetchUser() GET /api/v1/user
+    Api-->>A: 401 ou user
+    A->>A: user = null ou user
+    A->>R: userFetched = true
+    alt Não autenticado
+        R->>U: redirect /login?redirect=/admin/dashboard
+    end
+
+    Note over U, Api: Login
+
+    U->>L: Preenche e-mail e senha
+    L->>Api: getCsrfCookie() GET /sanctum/csrf-cookie
+    L->>Api: login() POST /login
+    Api-->>L: user (role: admin | student)
+    L->>A: setUser(user)
+    L->>R: push(redirect ou /admin/dashboard ou /aluno/dashboard)
+    R->>U: Redireciona para dashboard
+
+    Note over U, Api: Acesso a rota de outro papel
+
+    U->>R: Admin acessa /aluno/dashboard
+    R->>A: user.role !== to.meta.role
+    R->>U: redirect /admin/dashboard
+```
+
+### Diagrama do Fluxo de Dados (Dashboard Admin)
+
+```mermaid
+graph LR
+    subgraph "Página"
+        A[Dashboard.vue<br/>onMounted]
+    end
+
+    subgraph "Serviço"
+        B[AdminDashboardService.getChartData]
+    end
+
+    subgraph "API"
+        C[GET /api/v1/admin/dashboard]
+    end
+
+    subgraph "Resposta"
+        D[chart_data:<br/>summary, students_per_course,<br/>enrollments_per_month, ...]
+    end
+
+    subgraph "Renderização"
+        E[formatMonthChartLabels<br/>para line charts]
+        F[Cards + BarChart, DonutChart,<br/>PieChart, LineChart, TreemapChart]
+    end
+
+    A --> B
+    B --> C
+    C --> D
+    D --> A
+    A --> E
+    A --> F
+    E --> F
+
+    style A fill:#e1f5fe
+    style B fill:#fff3e0
+    style D fill:#e8f5e9
 ```
 
 ---
@@ -127,7 +209,7 @@ graph TB
 
 1. **Primeira visita:** Ao acessar qualquer rota, o guard `beforeEach` chama `auth.fetchUser()` (se ainda não foi feito). Se o backend retornar 401, `user` fica `null`. Se a rota exige auth (`meta.requiresAuth`), o guard redireciona para `/login?redirect=...`.
 
-2. **Login:** O usuário preenche e-mail e senha na página Login. O frontend chama `AuthService.getCsrfCookie()` e em seguida `AuthService.login(credentials)` (POST /login). O backend retorna `user` (com `role` e, se aluno, `student`). O store chama `setUser(user)` e o router redireciona para `/admin/dashboard` ou `/aluno/dashboard` conforme `user.role`.
+2. **Login:** O usuário preenche e-mail e senha na página Login. O frontend chama `AuthService.getCsrfCookie()` e em seguida `AuthService.login(credentials)` (POST /login). O backend retorna `user` (com `role` e, se aluno, `student`). O store recebe o user via `setUser(user)` (chamado pela página após login) e o router redireciona para `/admin/dashboard` ou `/aluno/dashboard` conforme `user.role`.
 
 3. **Rotas guest (login/register):** Se o usuário já estiver logado e acessar `/login` ou `/register`, o guard redireciona para o dashboard do seu papel.
 
@@ -137,26 +219,26 @@ graph TB
 
 ---
 
-## 📁 Estrutura de Pastas e Componentes
+## 📁 Estrutura de Pastas e Arquivos
 
 ```
 frontend/
 ├── index.html
 ├── package.json
-├── vite.config.js
+├── vite.config.js          # Vite + proxy para backend (porta 5173)
 ├── tailwind.config.js
 ├── postcss.config.js
 ├── src/
-│   ├── main.js              # Bootstrap: createApp, Pinia, Router, style.css
-│   ├── App.vue              # Raiz: <router-view />
-│   ├── style.css            # Estilos globais + Tailwind
+│   ├── main.js             # Bootstrap: createApp, Pinia, Router, style.css
+│   ├── App.vue             # Raiz: <router-view />
+│   ├── style.css           # Estilos globais + Tailwind
 │   ├── api/
-│   │   └── axios.js         # Instância Axios + interceptors (401, 403, 422)
+│   │   └── axios.js        # Instância Axios + interceptors (401, 403, 422)
 │   ├── stores/
-│   │   └── auth.js          # Pinia store: user, isAdmin, isStudent, fetchUser, login, logout
+│   │   └── auth.js         # Pinia store: user, isAdmin, isStudent, fetchUser, login, logout, setUser
 │   ├── router/
-│   │   └── index.js         # Rotas + beforeEach guard (guest, requiresAuth, role)
-│   ├── services/            # Camada de chamadas à API (um por domínio)
+│   │   └── index.js        # Rotas + beforeEach guard (guest, requiresAuth, role)
+│   ├── services/           # Camada de chamadas à API (um por domínio)
 │   │   ├── AuthService.js
 │   │   ├── AdminDashboardService.js
 │   │   ├── AreaService.js, CourseService.js, TeacherService.js, DisciplineService.js
@@ -164,11 +246,11 @@ frontend/
 │   │   ├── ReportService.js
 │   │   └── AlunoService.js
 │   ├── utils/
-│   │   ├── formatDate.js    # Formatação de data pt-BR
-│   │   └── index.js         # Reexportações
+│   │   ├── formatDate.js   # Formatação de data pt-BR
+│   │   └── index.js        # Reexportações
 │   ├── layouts/
-│   │   ├── AuthLayout.vue   # Container para login/register
-│   │   ├── AdminLayout.vue # Sidebar + header + menu admin
+│   │   ├── AuthLayout.vue  # Container para login/register
+│   │   ├── AdminLayout.vue # Sidebar + header + menu admin (lucide-vue-next)
 │   │   └── AlunoLayout.vue # Header com links Dashboard / Editar cadastro
 │   ├── components/
 │   │   ├── ui/
@@ -187,12 +269,12 @@ frontend/
 │   │   │   ├── Dashboard.vue
 │   │   │   ├── Reports.vue
 │   │   │   ├── RegisterAdmin.vue
-│   │   │   ├── areas/       # AreaList.vue, AreaForm.vue
-│   │   │   ├── courses/     # CourseList.vue, CourseForm.vue
-│   │   │   ├── teachers/    # TeacherList.vue, TeacherForm.vue
-│   │   │   ├── disciplines/ # DisciplineList.vue, DisciplineForm.vue
-│   │   │   ├── students/    # StudentList.vue, StudentForm.vue
-│   │   │   └── enrollments/ # EnrollmentList.vue, EnrollmentForm.vue
+│   │   │   ├── areas/      # AreaList.vue, AreaForm.vue
+│   │   │   ├── courses/    # CourseList.vue, CourseForm.vue
+│   │   │   ├── teachers/   # TeacherList.vue, TeacherForm.vue
+│   │   │   ├── disciplines/# DisciplineList.vue, DisciplineForm.vue
+│   │   │   ├── students/   # StudentList.vue, StudentForm.vue
+│   │   │   └── enrollments/# EnrollmentList.vue, EnrollmentForm.vue
 │   │   └── aluno/
 │   │       ├── Dashboard.vue
 │   │       └── ProfileEdit.vue
@@ -206,7 +288,7 @@ frontend/
 
 - **Instância:** `axios.create()` com `baseURL: import.meta.env.VITE_API_URL || ''`, `withCredentials: true` e headers `Accept: application/json`, `Content-Type: application/json`, `X-Requested-With: XMLHttpRequest`.
 - **Interceptor de resposta (erro):**
-  - **401 / 403:** Remove `user` do localStorage e limpa sessionStorage; rejeita com `error.message` (mensagem do backend ou padrão "Não autenticado" / "Acesso não autorizado"). O router guard e as páginas tratam o redirecionamento para login; não se faz redirect no interceptor para evitar loop.
+  - **401 / 403:** Remove `user` do localStorage e limpa sessionStorage; rejeita com `error.message` (mensagem do backend ou padrão "Não autenticado" / "Acesso não autorizado"). O router guard e as páginas tratam o redirecionamento para login; não se faz redirect no interceptor para evitar loop (ERR_TOO_MANY_REDIRECTS).
   - **422:** Se `data.errors` existir, atribui a `error.validationErrors` e `error.message`; os formulários usam isso para exibir erros por campo.
   - Outros erros: rejeita o erro original.
 
@@ -220,9 +302,9 @@ frontend/
 - **Getters:** `isAuthenticated`, `isAdmin` (user?.role === 'admin'), `isStudent` (user?.role === 'student'), `userName` (user?.name ?? '').
 - **Actions:**
   - **fetchUser():** GET `/api/v1/user`; atualiza `user` com o retorno (suporta formato `data` ou objeto direto); marca `userFetched = true`. Usado pelo router guard na primeira navegação.
-  - **login(credentials):** Não é usado diretamente pelo Login.vue; a página chama AuthService e depois setUser. O store pode expor login se desejado.
+  - **login(credentials):** POST `/login`; atualiza `user` com o retorno (uso opcional; a página Login pode usar AuthService e depois setUser).
   - **logout():** POST `/logout`, zera `user` e `userFetched`.
-  - **setUser(user):** Normaliza e atribui a `user` (usado após login).
+  - **setUser(user):** Normaliza e atribui a `user` (usado após login na página Login).
   - **init():** Se já tem user retorna; senão chama fetchUser.
 
 ---
@@ -231,18 +313,18 @@ frontend/
 
 Cada serviço é um objeto com métodos que chamam a instância `api` (axios) e retornam a promise. Respostas são usadas nas páginas como `(await Service.method()).data`; a estrutura (data.data ou data) é tratada nas páginas conforme o formato do backend (API Resources).
 
-| Serviço | Métodos | Endpoints |
-|---------|---------|-----------|
-| **AuthService** | getCsrfCookie, login, loginAluno, loginAdmin, register, registerAdmin, logout, getUser | /sanctum/csrf-cookie, /login, /login/aluno, /login/admin, /register, /api/v1/admin/register, /logout, /api/v1/user |
-| **AdminDashboardService** | getChartData | GET /api/v1/admin/dashboard |
-| **AreaService** | getAll, getOne, create, update, delete | GET/POST/GET/PUT/DELETE /api/v1/admin/areas |
-| **CourseService** | getAll, getOne, create, update, delete | /api/v1/admin/courses |
-| **TeacherService** | getAll, getOne, create, update, delete | /api/v1/admin/teachers |
-| **DisciplineService** | getAll, getOne, create, update, delete | /api/v1/admin/disciplines |
-| **StudentService** | getAll, getOne, create, update, delete | /api/v1/admin/students (getAll com params: search, sort, per_page) |
-| **EnrollmentService** | getAll, getOne, create, getCreateData, update, delete | /api/v1/admin/enrollments, GET .../enrollments/create |
-| **ReportService** | getCourseAges | GET /api/v1/admin/reports |
-| **AlunoService** | getDashboardChart, getProfile, updateProfile | GET /api/v1/aluno/dashboard, GET/PUT /api/v1/aluno/profile |
+| Serviço                  | Métodos | Endpoints |
+|--------------------------|---------|-----------|
+| **AuthService**          | getCsrfCookie, login, loginAluno, loginAdmin, register, registerAdmin, logout, getUser | /sanctum/csrf-cookie, /login, /login/aluno, /login/admin, /register, /api/v1/admin/register, /logout, /api/v1/user |
+| **AdminDashboardService**| getChartData | GET /api/v1/admin/dashboard |
+| **AreaService**          | getAll, getOne, create, update, delete | GET/POST/GET/PUT/DELETE /api/v1/admin/areas |
+| **CourseService**       | getAll, getOne, create, update, delete | /api/v1/admin/courses |
+| **TeacherService**      | getAll, getOne, create, update, delete | /api/v1/admin/teachers |
+| **DisciplineService**    | getAll, getOne, create, update, delete | /api/v1/admin/disciplines |
+| **StudentService**      | getAll, getOne, create, update, delete | /api/v1/admin/students (getAll com params: search, sort, per_page) |
+| **EnrollmentService**    | getAll, getOne, create, getCreateData, update, delete | /api/v1/admin/enrollments, GET .../enrollments/create |
+| **ReportService**       | getCourseAges | GET /api/v1/admin/reports |
+| **AlunoService**        | getDashboardChart, getProfile, updateProfile | GET /api/v1/aluno/dashboard, GET/PUT /api/v1/aluno/profile |
 
 ---
 
@@ -251,7 +333,7 @@ Cada serviço é um objeto com métodos que chamam a instância `api` (axios) e 
 ### Layouts
 
 - **AuthLayout:** Container centralizado com título "Plataforma Prof. Jubilut", subtítulo "Entre ou cadastre-se", e `<router-view />` para Login ou Register. Rodapé com copyright.
-- **AdminLayout:** Sidebar fixa (recolhível em mobile com overlay), links para Dashboard, Áreas, Cursos, Professores, Disciplinas, Alunos, Matrículas, Relatórios e Cadastrar administrador. Header com título da rota atual, nome do usuário e botão Sair. Conteúdo em `<main>` com `<router-view />`.
+- **AdminLayout:** Sidebar fixa (recolhível em mobile com overlay), links para Dashboard, Áreas, Cursos, Professores, Disciplinas, Alunos, Matrículas, Relatórios e Cadastrar administrador. Header com título da rota atual, nome do usuário e botão Sair. Ícones com **lucide-vue-next**. Conteúdo em `<main>` com `<router-view />`.
 - **AlunoLayout:** Header com logo, links "Dashboard" e "Editar cadastro", nome do usuário e Sair. Conteúdo em `<main>` com `<router-view />`.
 
 ### Rotas (resumo)
@@ -275,6 +357,8 @@ Cada serviço é um objeto com métodos que chamam a instância `api` (axios) e 
 | /aluno/dashboard | AlunoLayout | requiresAuth, role student | aluno/Dashboard.vue |
 | /aluno/profile | AlunoLayout | requiresAuth, role student | ProfileEdit.vue |
 
+Todas as páginas de admin e aluno são carregadas sob demanda (`import()` no router) para reduzir o bundle inicial.
+
 ---
 
 ## 🧩 Componentes de UI e Gráficos
@@ -287,16 +371,16 @@ Cada serviço é um objeto com métodos que chamam a instância `api` (axios) e 
 
 ### Gráficos (ApexCharts via vue3-apexcharts)
 
-Todos recebem dados no formato **labels** (array de strings) e **series** (array de números), exceto variações (ex.: LineChart com uma série temporal). Suportam tema **dark** (labels em cor clara) e são responsivos.
+Todos recebem dados no formato **labels** (array de strings) e **series** (array de números), exceto variações (ex.: LineChart com uma série temporal). Suportam tema **dark** (labels em cor clara) e são responsivos. Os gráficos de linha (matrículas e novos alunos por mês) usam labels pré-formatados no Dashboard (`formatMonthChartLabels`) e o componente **LineChart** aplica formatter e padding para evitar quebra de datas e corte do eixo em mobile.
 
-| Componente | Tipo ApexCharts | Uso típico | Props principais |
-|------------|-----------------|------------|-------------------|
-| **BarChart** | bar | Alunos por curso, idade média, disciplinas por curso, “minha idade” (1 barra) | labels, series, color, horizontal, dark, hideYAxis |
-| **PieChart** | pie | Matrículas por curso (admin), minhas matrículas (aluno) | labels, series, colors, dark, compactLabels |
-| **DonutChart** | donut | Alunos por faixa etária, meus cursos (aluno) | labels, series, colors, dark |
-| **LineChart** | area (linha preenchida) | Matrículas por mês, novos alunos por mês | labels, series, color, dark, hideYAxis |
-| **TreemapChart** | treemap | Alunos por área | labels, series, colors, dark |
-| **RadarChart** | radar | Dados multidimensionais (se usado) | labels, series, color, dark |
+| Componente      | Tipo ApexCharts | Uso típico | Props principais |
+|-----------------|-----------------|------------|-------------------|
+| **BarChart**    | bar | Alunos por curso, idade média, disciplinas por curso, “minha idade” (1 barra) | labels, series, color, horizontal, dark, hideYAxis |
+| **PieChart**    | pie | Matrículas por curso (admin), minhas matrículas (aluno) | labels, series, colors, dark, compactLabels |
+| **DonutChart**  | donut | Alunos por faixa etária, meus cursos (aluno) | labels, series, colors, dark |
+| **LineChart**   | area (linha preenchida) | Matrículas por mês, novos alunos por mês | labels, series, color, dark, hideYAxis (responsivo com breakpoints) |
+| **TreemapChart**| treemap | Alunos por área | labels, series, colors, dark |
+| **RadarChart**  | radar | Dados multidimensionais (se usado) | labels, series, color, dark |
 | **RadialBarChart** | radialBar | Indicador único (se usado) | — |
 
 Os gráficos do dashboard admin usam paletas (donutColors, pieColors, treemapColors) em tons de cyan, green, amber, red, violet, etc., para consistência visual.
@@ -307,12 +391,12 @@ Os gráficos do dashboard admin usam paletas (donutColors, pieColors, treemapCol
 
 ### Auth
 
-- **Login.vue:** Formulário com e-mail, senha e “Lembrar de mim”. Chama CSRF cookie e AuthService.login; em sucesso atualiza auth store e redireciona (redirect query ou dashboard por role). Exibe mensagem se `?registered=1`. Link para cadastro como aluno; texto informando que administradores usam a mesma tela.
+- **Login.vue:** Formulário com e-mail, senha e “Lembrar de mim”. Chama CSRF cookie e AuthService.login; em sucesso atualiza auth store (setUser) e redireciona (redirect query ou dashboard por role). Exibe mensagem se `?registered=1`. Link para cadastro como aluno; texto informando que administradores usam a mesma tela.
 - **Register.vue:** Formulário de cadastro de aluno (nome, e-mail, senha, confirmação, data de nascimento). POST /register; em sucesso redireciona para /login?registered=1. Erros de validação exibidos por campo.
 
 ### Admin
 
-- **Dashboard.vue:** Carrega dados via AdminDashboardService.getChartData(). Exibe cards de resumo (summary) e grid de gráficos (BarChart, DonutChart, PieChart, LineChart, TreemapChart) com títulos. Estilo “dashboard tech” com fundo escuro e cards em glass.
+- **Dashboard.vue:** Carrega dados via AdminDashboardService.getChartData(). Aplica `formatMonthChartLabels()` aos labels de enrollments_per_month e students_per_month antes de passar ao LineChart. Exibe cards de resumo (summary) e grid de gráficos (BarChart, DonutChart, PieChart, LineChart, TreemapChart) com títulos. Cards dos gráficos de linha usam classe `chart-card-line` para padding extra. Estilo “dashboard tech” com fundo escuro e cards em glass.
 - **Reports.vue:** Carrega ReportService.getCourseAges(); exibe tabela do relatório (curso, média de idade, mais novo, mais velho) e os mesmos dados de gráficos (chart_data).
 - **RegisterAdmin.vue:** Formulário para cadastrar novo administrador (nome, e-mail, senha); chama AuthService.registerAdmin (POST /api/v1/admin/register).
 - **AreaList.vue:** Tabela de áreas com ordenação (select sort) e botão “Nova área”. Links Editar e botão Excluir (com confirm). AreaService.getAll({ sort, per_page }).
@@ -337,7 +421,7 @@ Os gráficos do dashboard admin usam paletas (donutColors, pieColors, treemapCol
 - **Vue Router** ^4.2 (history mode)
 - **Pinia** ^2.1 (store auth)
 - **Axios** ^1.6 (cliente HTTP)
-- **Vite** ^5.0 (build e dev server)
+- **Vite** ^5.0 (build e dev server, porta 5173)
 - **@vitejs/plugin-vue** ^5.0
 - **Tailwind CSS** ^3.4 + PostCSS + Autoprefixer
 - **ApexCharts** ^4.0 + **vue3-apexcharts** ^1.4 (gráficos)
@@ -348,7 +432,7 @@ Os gráficos do dashboard admin usam paletas (donutColors, pieColors, treemapCol
 ## 🔧 Variáveis de Ambiente e Proxy
 
 - **VITE_API_URL:** Base URL da API (vazio em dev quando se usa proxy). Em produção pode ser definido (ex.: `https://api.exemplo.com`).
-- **Proxy (vite.config.js):** Em desenvolvimento, as requisições para `/api`, `/sanctum`, `/login`, `/register`, `/logout` são encaminhadas para `http://127.0.0.1:8000` (backend Laravel). Assim, a SPA em `http://localhost:5173` envia cookies para o mesmo “origin” (proxy), evitando problemas de CORS com sessão Sanctum.
+- **Proxy (vite.config.js):** Em desenvolvimento, as requisições para `/api`, `/sanctum`, `/login`, `/register`, `/logout` são encaminhadas para `http://127.0.0.1:8000` (backend Laravel). Assim, a SPA em `http://localhost:5173` envia cookies para o mesmo “origin” (via proxy), evitando problemas de CORS com sessão Sanctum.
 
 ---
 
@@ -380,4 +464,4 @@ npm run preview
 
 ---
 
-**Resumo:** O frontend é a SPA Vue 3 da Plataforma Prof. Jubilut: autenticação por papel, dashboards com gráficos (admin e aluno), CRUD completo para o admin, relatórios, perfil do aluno, componentes de UI e gráficos reutilizáveis, integração com o backend via Axios e Sanctum, e rotas protegidas por guard e meta (role). Toda a experiência do usuário (admin e aluno) é entregue por este projeto.
+**Resumo:** O frontend é a SPA Vue 3 da Plataforma Prof. Jubilut: autenticação por papel, dashboards com gráficos (admin e aluno), CRUD completo para o admin, relatórios, perfil do aluno, componentes de UI e gráficos reutilizáveis (com responsividade e formatação de datas nos gráficos de linha), integração com o backend via Axios e Sanctum, e rotas protegidas por guard e meta (role). Toda a experiência do usuário (admin e aluno) é entregue por este projeto.
