@@ -367,20 +367,71 @@ Saída em **`frontend/dist/`**. Servir por Laravel, Nginx ou outro. Definir **VI
 
 ### Backend (`backend/.env`)
 
+O arquivo `backend/.env` é criado a partir de `backend/.env.example`. Abaixo estão todas as variáveis utilizadas pelo backend e um exemplo de conteúdo (sem valores sensíveis).
+
+#### Tabela de variáveis
+
 | Variável | Descrição | Exemplo (local) | Exemplo (Docker) |
 |----------|-----------|------------------|------------------|
-| APP_NAME | Nome da aplicação | Laravel | Plataforma Prof. Jubilut |
-| APP_KEY | Chave de criptografia | (php artisan key:generate) | (gerado no entrypoint) |
-| APP_URL | URL do backend | http://localhost:8000 | http://localhost:8000 |
-| FRONTEND_URL | URL do frontend (CORS/Sanctum) | http://localhost:5173 | http://localhost:5173 |
-| DB_CONNECTION | Driver | mysql | mysql |
-| DB_HOST | Host MySQL | 127.0.0.1 | mysql |
-| DB_PORT | Porta MySQL | 3306 | 3306 |
-| DB_DATABASE | Nome do banco | plataforma | plataforma |
-| DB_USERNAME | Usuário MySQL | root | root |
-| DB_PASSWORD | Senha MySQL | (sua senha) | secret |
+| **APP_NAME** | Nome da aplicação | Laravel | Plataforma Prof. Jubilut |
+| **APP_ENV** | Ambiente (local, production, etc.) | local | local |
+| **APP_KEY** | Chave de criptografia (obrigatória) | *(gerar com `php artisan key:generate`)* | *(gerado no entrypoint)* |
+| **APP_DEBUG** | Modo debug (true/false) | true | true |
+| **APP_URL** | URL do backend | http://127.0.0.1:8000 | http://127.0.0.1:8000 |
+| **FRONTEND_URL** | URL do frontend (CORS/Sanctum) | http://localhost:5173 | http://localhost:5173 |
+| **SESSION_DOMAIN** | Domínio da sessão (cookies) | localhost | localhost |
+| **LOG_CHANNEL** | Canal de log | stack | stack |
+| **LOG_DEPRECATIONS_CHANNEL** | Canal para depreciações | null | null |
+| **LOG_LEVEL** | Nível de log (debug, info, etc.) | debug | debug |
+| **DB_CONNECTION** | Driver do banco | mysql | mysql |
+| **DB_HOST** | Host do MySQL | 127.0.0.1 | mysql |
+| **DB_PORT** | Porta do MySQL | 3306 | 3306 |
+| **DB_DATABASE** | Nome do banco | laravel ou plataforma | plataforma |
+| **DB_USERNAME** | Usuário MySQL | root | root |
+| **DB_PASSWORD** | Senha MySQL | *(vazio ou sua senha)* | secret |
+| **BROADCAST_DRIVER** | Driver de broadcast | log | log |
+| **CACHE_DRIVER** | Driver de cache | file | file |
+| **FILESYSTEM_DISK** | Disco padrão do filesystem | local | local |
+| **QUEUE_CONNECTION** | Conexão da fila | sync | sync |
+| **SESSION_DRIVER** | Driver de sessão | file | file |
+| **SESSION_LIFETIME** | Tempo de vida da sessão (minutos) | 120 | 120 |
 
 No Docker o backend pode usar **`backend/.env.docker`** como referência (DB_HOST=mysql, DB_PASSWORD=secret).
+
+#### Exemplo de estrutura do `backend/.env` (desenvolvimento local)
+
+```env
+APP_NAME=Laravel
+APP_ENV=local
+APP_KEY=base64:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx=
+APP_DEBUG=true
+APP_URL=http://127.0.0.1:8000
+FRONTEND_URL=http://localhost:5173
+SESSION_DOMAIN=localhost
+
+LOG_CHANNEL=stack
+LOG_DEPRECATIONS_CHANNEL=null
+LOG_LEVEL=debug
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=laravel
+DB_USERNAME=root
+DB_PASSWORD=
+
+BROADCAST_DRIVER=log
+CACHE_DRIVER=file
+FILESYSTEM_DISK=local
+QUEUE_CONNECTION=sync
+SESSION_DRIVER=file
+SESSION_LIFETIME=120
+```
+
+- **APP_KEY:** Nunca commitar a chave real. Gerar com `php artisan key:generate` após copiar o `.env` do `.env.example`.
+- **DB_DATABASE:** Criar o banco no MySQL antes de rodar `php artisan migrate` (ex.: `CREATE DATABASE laravel;` ou `plataforma`).
+- **DB_PASSWORD:** Preencher se o MySQL exigir senha no seu ambiente.
+- **SESSION_DOMAIN:** Usado para cookies de sessão; `localhost` é comum em desenvolvimento. Para Sanctum com SPA, o domínio do frontend deve estar em `config/sanctum.php` (stateful domains).
 
 ### Frontend (`frontend/.env`)
 
