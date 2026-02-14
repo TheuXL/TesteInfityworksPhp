@@ -2,8 +2,83 @@
 
 Bem-vindo ao repositório da **Plataforma Prof. Jubilut**: uma aplicação completa de gestão escolar com **área administrativa** e **área do aluno**. O projeto é dividido em **Backend** (API Laravel 10 + MySQL), **Frontend** (SPA Vue 3) e **Banco de Dados (MySQL 8)**, que se integram via API REST com autenticação por sessão (Laravel Sanctum). Este README descreve o sistema como um todo, explicando em detalhe o backend, o frontend e o banco de dados, além de como rodar com **Docker** ou em **ambiente local**.
 
+---
+
+## ⚡ Como rodar o projeto (Docker)
+
+O projeto usa **Docker** e **Docker Compose** ([`docker-compose.yml`](docker-compose.yml)) para subir o **backend** (Laravel) e o **MySQL**. O frontend roda na sua máquina com `npm run dev`.
+
+### 1. Subir backend e MySQL
+
+**Windows (PowerShell):**
+```powershell
+.\run.ps1
+```
+
+**Linux / macOS:**
+```bash
+chmod +x run.sh
+./run.sh
+```
+
+Os scripts [`run.ps1`](run.ps1) (Windows) e [`run.sh`](run.sh) (Linux/macOS) verificam se o Docker está instalado e rodando, executam `docker compose up -d --build`, aguardam as migrações e o seed e informam quando o backend estiver em **http://127.0.0.1:8000**.
+
+**Ou manualmente:**
+```bash
+docker compose up -d --build
+```
+
+### 2. Subir o frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Acesse **http://localhost:5173**. Login: **admin** `admin@plataforma.test` / `password` — **aluno** `emanuel@plataforma.test` / `password`.
+
+---
+
+## 🧪 Como rodar os testes
+
+Os testes do **backend** (PHPUnit) podem ser executados **via Docker**, sem precisar ter PHP ou os containers da aplicação rodando.
+
+**Windows (PowerShell):**
+```powershell
+.\test.ps1
+```
+
+**Linux / macOS:**
+```bash
+chmod +x test.sh
+./test.sh
+```
+
+Os scripts [`test.ps1`](test.ps1) (Windows) e [`test.sh`](test.sh) (Linux/macOS) usam a imagem do backend, montam o código de `backend/`, rodam os testes com PHPUnit (banco em memória SQLite) e exibem o resultado. Na primeira vez, a imagem é construída se ainda não existir (rode `run.ps1` ou `run.sh` antes, ou o script fará `docker compose build app`).
+
+**Backend local (com PHP instalado):**
+```bash
+cd backend
+composer install
+php artisan test
+# ou: ./vendor/bin/phpunit --testdox
+```
+
+---
+
+## 📚 Documentação completa
+
+- **[Backend – README completo](backend/README.md)** – Arquitetura, modelagem, autenticação, endpoints, serviços, testes e execução do backend.
+- **[Frontend – README completo](frontend/README.md)** – Arquitetura da SPA, rotas, serviços, componentes, gráficos e build do frontend.
+
+---
+
 ## 📋 Índice
 
+- [Como rodar o projeto (Docker)](#-como-rodar-o-projeto-docker)
+- [Como rodar os testes](#-como-rodar-os-testes)
+- [Documentação completa](#-documentação-completa)
 - [Visão Geral do Projeto](#-visão-geral-do-projeto)
 - [Arquitetura do Sistema](#-arquitetura-do-sistema)
 - [Backend (API Laravel)](#-backend-api-laravel)
@@ -398,12 +473,12 @@ O arquivo `backend/.env` é criado a partir de `backend/.env.example`. Abaixo es
 
 No Docker o backend pode usar **`backend/.env.docker`** como referência (DB_HOST=mysql, DB_PASSWORD=secret).
 
-#### Exemplo de estrutura do `backend/.env` (desenvolvimento local)
+#### Estrutura do `backend/.env` (desenvolvimento local)
 
 ```env
 APP_NAME=Laravel
 APP_ENV=local
-APP_KEY=base64:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx=
+APP_KEY=base64:PGOngFuRa/3nYai4hUxfCUI5uyC7JPyhAZQy6n7QJjI=
 APP_DEBUG=true
 APP_URL=http://127.0.0.1:8000
 FRONTEND_URL=http://localhost:5173
@@ -426,6 +501,7 @@ FILESYSTEM_DISK=local
 QUEUE_CONNECTION=sync
 SESSION_DRIVER=file
 SESSION_LIFETIME=120
+
 ```
 
 - **APP_KEY:** Nunca commitar a chave real. Gerar com `php artisan key:generate` após copiar o `.env` do `.env.example`.
