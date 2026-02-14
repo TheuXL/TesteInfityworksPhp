@@ -2,10 +2,17 @@
 
 namespace App\Services;
 
+use App\Models\Area;
+use App\Models\Course;
+use App\Models\Discipline;
+use App\Models\Enrollment;
+use App\Models\Student;
+use App\Models\Teacher;
 use App\Models\User;
 use App\Repositories\AreaRepository;
 use App\Repositories\CourseRepository;
 use App\Repositories\StudentRepository;
+use Carbon\Carbon;
 
 class StudentChartDataService
 {
@@ -22,11 +29,75 @@ class StudentChartDataService
     public function adminChartData(): array
     {
         return [
+            'summary' => $this->summary(),
             'students_per_course' => $this->studentsPerCourse(),
             'average_age_per_course' => $this->averageAgePerCourse(),
             'students_by_age_range' => $this->studentsByAgeRange(),
             'enrollments_per_course' => $this->enrollmentsPerCourse(),
             'students_per_area' => $this->studentsPerArea(),
+            'enrollments_per_month' => $this->enrollmentsPerMonth(),
+            'students_per_month' => $this->studentsPerMonth(),
+            'disciplines_per_course' => $this->disciplinesPerCourse(),
+        ];
+    }
+
+    private function summary(): array
+    {
+        return [
+            'students' => Student::count(),
+            'enrollments' => Enrollment::count(),
+            'courses' => Course::count(),
+            'teachers' => Teacher::count(),
+            'areas' => Area::count(),
+            'disciplines' => Discipline::count(),
+        ];
+    }
+
+    private function enrollmentsPerMonth(): array
+    {
+        $months = collect();
+        for ($i = 5; $i >= 0; $i--) {
+            $months->push(Carbon::now()->subMonths($i));
+        }
+        $labels = $months->map(fn ($d) => $this->formatMonthLabel($d))->toArray();
+        $data = $months->map(function ($date) {
+            return Enrollment::whereYear('created_at', $date->year)
+                ->whereMonth('created_at', $date->month)
+                ->count();
+        })->toArray();
+        return ['labels' => $labels, 'data' => $data];
+    }
+
+    private function studentsPerMonth(): array
+    {
+        $months = collect();
+        for ($i = 5; $i >= 0; $i--) {
+            $months->push(Carbon::now()->subMonths($i));
+        }
+        $labels = $months->map(fn ($d) => $this->formatMonthLabel($d))->toArray();
+        $data = $months->map(function ($date) {
+            return Student::whereYear('created_at', $date->year)
+                ->whereMonth('created_at', $date->month)
+                ->count();
+        })->toArray();
+        return ['labels' => $labels, 'data' => $data];
+    }
+
+    private function formatMonthLabel(Carbon $date): string
+    {
+        $mes = mb_substr($date->locale('pt_BR')->translatedFormat('M'), 0, 3);
+        $mes = preg_replace('/\W/u', '', $mes);
+        $ano = $date->format('y');
+
+        return $mes !== '' && $ano !== '' ? "{$mes} {$ano}" : $date->format('m/y');
+    }
+
+    private function disciplinesPerCourse(): array
+    {
+        $courses = Course::withCount('disciplines')->orderByDesc('disciplines_count')->limit(10)->get();
+        return [
+            'labels' => $courses->pluck('title')->toArray(),
+            'data' => $courses->pluck('disciplines_count')->toArray(),
         ];
     }
 
