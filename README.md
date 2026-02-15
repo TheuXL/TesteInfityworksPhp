@@ -166,7 +166,9 @@ php artisan test
 - [Credenciais Padrão](#-credenciais-padrão)
 - [Estrutura do Repositório](#-estrutura-do-repositório)
 - [Documentação Detalhada](#-documentação-detalhada)
+- [Tecnologias, bibliotecas e ferramentas](#️-tecnologias-bibliotecas-e-ferramentas)
 - [Solução de Problemas](#-solução-de-problemas)
+- [Pontos de melhorias](#-pontos-de-melhorias)
 
 ---
 
@@ -387,6 +389,8 @@ Além dessas, existem tabelas Laravel: `sessions`, `cache`, `failed_jobs`, `pers
 
 ### Diagrama ER (resumo)
 
+No Mermaid, os atributos da entidade são definidos em linhas separadas, no formato `tipo nome` ou `tipo nome PK|FK|UK`.
+
 ```mermaid
 erDiagram
     users ||--o| students : "1:1 (aluno)"
@@ -397,13 +401,63 @@ erDiagram
     enrollments }o--|| students : "pertence a"
     enrollments }o--|| courses : "pertence a"
 
-    users { bigint id PK, string name, string email UK, string password, enum role, timestamps }
-    students { bigint id PK, string name, string email, date birth_date, bigint user_id FK, timestamps }
-    areas { bigint id PK, string name, timestamps }
-    courses { bigint id PK, string title, text description, date start_date, date end_date, bigint area_id FK, timestamps }
-    teachers { bigint id PK, string name, string email, timestamps }
-    disciplines { bigint id PK, string title, text description, bigint course_id FK, bigint teacher_id FK, timestamps }
-    enrollments { bigint id PK, bigint student_id FK, bigint course_id FK, timestamps }
+    users {
+        int id PK
+        string name
+        string email UK
+        string password
+        string role
+        date created_at
+        date updated_at
+    }
+    students {
+        int id PK
+        string name
+        string email
+        date birth_date
+        int user_id FK
+        date created_at
+        date updated_at
+    }
+    areas {
+        int id PK
+        string name
+        date created_at
+        date updated_at
+    }
+    courses {
+        int id PK
+        string title
+        string description
+        date start_date
+        date end_date
+        int area_id FK
+        date created_at
+        date updated_at
+    }
+    teachers {
+        int id PK
+        string name
+        string email
+        date created_at
+        date updated_at
+    }
+    disciplines {
+        int id PK
+        string title
+        string description
+        int course_id FK
+        int teacher_id FK
+        date created_at
+        date updated_at
+    }
+    enrollments {
+        int id PK
+        int student_id FK
+        int course_id FK
+        date created_at
+        date updated_at
+    }
 ```
 
 ### Migrations e Seed
@@ -671,6 +725,53 @@ TesteInfityworksPhp/
 docker compose down -v   # Remove containers e volumes (apaga dados do MySQL)
 docker compose up -d --build
 ```
+
+---
+
+## 🛠️ Tecnologias, bibliotecas e ferramentas
+
+Resumo do que foi usado para criar o sistema: frameworks, bibliotecas, libs de gráficos, geração de PDF, etc.
+
+### Backend (API)
+
+| Categoria | Tecnologia / Pacote | Uso |
+|-----------|---------------------|-----|
+| **Linguagem** | PHP ^8.1 | Runtime do backend |
+| **Framework** | Laravel ^10.10 | API REST, rotas, middleware, Eloquent, migrations, seeds |
+| **Autenticação** | Laravel Sanctum ^3.3 | Sessão/cookies para SPA, CSRF, proteção de rotas |
+| **HTTP client** | Guzzle ^7.2 | Cliente HTTP (dependência do Laravel) |
+| **Relatório PDF** | barryvdh/laravel-dompdf ^2.0 | Geração de PDF do relatório admin (views HTML → PDF) |
+| **PDF (engine)** | dompdf/dompdf (via barryvdh) | Conversão HTML/CSS para PDF |
+| **Console** | Laravel Tinker ^2.8 | REPL e scripts no ambiente Laravel |
+| **Testes** | PHPUnit ^10.1 | Testes unitários e de integração |
+| **Dev** | Faker, Mockery, Laravel Pint, Collision, Sail, Spatie Ignition | Faker para seeds/factories; Pint (style); testes e debug |
+
+O backend usa **Composer** para dependências PHP. Banco de dados: **MySQL 8** (PDO). Extensões PHP: pdo_mysql, mbstring, openssl, xml, etc. (ver `backend/Dockerfile`).
+
+### Frontend (SPA)
+
+| Categoria | Tecnologia / Pacote | Uso |
+|-----------|---------------------|-----|
+| **Framework** | Vue ^3.4 | SPA, componentes reativos |
+| **Roteamento** | Vue Router ^4.2 | Rotas (history), guards, lazy loading |
+| **Estado** | Pinia ^2.1 | Store global (auth, usuário logado) |
+| **HTTP** | Axios ^1.6 | Cliente API, interceptors, withCredentials (cookies) |
+| **Gráficos** | ApexCharts ^4.0 + vue3-apexcharts ^1.4 | Gráficos de barras, pizza, donut, linha, treemap, radar, radial no dashboard e relatórios |
+| **Ícones** | lucide-vue-next ^0.460 | Ícones (sidebar, botões, listagens) |
+| **CSS** | Tailwind CSS ^3.4 | Estilos, layout responsivo, utilitários |
+| **Build** | Vite ^5.0 | Dev server, proxy para API, build de produção |
+| **Vue (build)** | @vitejs/plugin-vue ^5.0 | Compilação de SFC (.vue) |
+| **CSS (build)** | PostCSS, Autoprefixer | Processamento de CSS (Tailwind) |
+
+O frontend usa **npm** e **Node.js** (v18+). Os **gráficos** (admin e aluno) são renderizados com **ApexCharts** (vue3-apexcharts); o **relatório PDF** é gerado no backend com **Laravel DomPDF** e baixado via endpoint `/api/v1/admin/reports/pdf`.
+
+### Infra e ferramentas
+
+| Categoria | Tecnologia | Uso |
+|-----------|------------|-----|
+| **Banco de dados** | MySQL 8.x | Persistência (users, students, areas, courses, teachers, disciplines, enrollments) |
+| **Contêineres** | Docker, Docker Compose | Backend (PHP/Laravel) e MySQL em containers |
+| **Scripts** | run.ps1 / run.sh, test.ps1 / test.sh | Subir ambiente e rodar testes via Docker |
 
 ---
 
