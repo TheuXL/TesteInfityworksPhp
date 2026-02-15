@@ -9,7 +9,7 @@ const api = axios.create({
     'X-Requested-With': 'XMLHttpRequest',
   },
 });
-terceptors.response.use(
+api.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error.response?.status;
