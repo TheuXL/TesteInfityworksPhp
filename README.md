@@ -100,7 +100,17 @@ cd frontend
 npm run dev
 ```
 
-Acesse **http://localhost:5173**. Login: **admin** `admin@plataforma.test` / `password` — **aluno** `emanuel@plataforma.test` / `password`.
+Acesse **http://localhost:5173**.
+
+#### Usuários criados automaticamente (Docker)
+
+Ao subir o projeto com Docker, **um usuário admin e um usuário aluno já são criados automaticamente** (via seed do banco):
+
+- **Admin:** `admin@plataforma.test` / `password`
+- **Aluno:** `emanuel@plataforma.test` / `password`
+
+- **Alunos:** podem se cadastrar pela **tela de registro** (registrar) da aplicação, sem precisar de um usuário existente.
+- **Novos admins:** para criar outro usuário administrador, faça login com o admin criado automaticamente (`admin@plataforma.test` / `password`) e, dentro da área administrativa, use a opção **Registrar um usuário admin** para cadastrar um novo administrador.
 
 ---
 

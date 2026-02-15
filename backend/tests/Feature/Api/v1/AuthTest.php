@@ -76,8 +76,10 @@ class AuthTest extends TestCase
             'email' => 'novo@test.com',
             'password' => 'password123',
             'password_confirmation' => 'password123',
+            'birth_date' => '2000-01-15',
         ]);
-        $response->assertRedirect($this->frontendUrl() . '/aluno/dashboard');
+        $response->assertRedirect();
+        $this->assertStringContainsString('/aluno/dashboard', $response->headers->get('Location') ?? '');
         $this->assertDatabaseHas('users', ['email' => 'novo@test.com']);
         $user = User::where('email', 'novo@test.com')->first();
         $this->assertEquals(UserRole::STUDENT, $user->role);

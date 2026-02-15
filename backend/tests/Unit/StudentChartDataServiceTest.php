@@ -10,12 +10,15 @@ use App\Repositories\CourseRepository;
 use App\Repositories\StudentRepository;
 use App\Services\StudentChartDataService;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use Tests\TestCase;
 
 /** Testes do StudentChartDataService: dados para gráficos (admin e aluno). */
 class StudentChartDataServiceTest extends TestCase
 {
+    use RefreshDatabase;
+
     protected function tearDown(): void
     {
         Mockery::close();

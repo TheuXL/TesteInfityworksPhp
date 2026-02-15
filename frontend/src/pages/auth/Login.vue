@@ -34,9 +34,6 @@
         Não tem conta?
         <router-link to="/register" class="font-medium text-blue-600 hover:underline">Cadastre-se como aluno</router-link>
       </p>
-      <p class="mt-2 text-center text-xs text-slate-400">
-        Administradores: use esta mesma tela para entrar. Para cadastrar outro admin, após entrar use <strong>Cadastrar administrador</strong> no menu.
-      </p>
     </form>
   </div>
 </template>

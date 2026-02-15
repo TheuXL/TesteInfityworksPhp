@@ -36,6 +36,8 @@ docker run --rm `
     -v "${backendAbs}:/var/www" `
     -w /var/www `
     -e APP_ENV=testing `
+    -e APP_KEY=base64:PGOngFuRa/3nYai4hUxfCUI5uyC7JPyhAZQy6n7QJjI= `
+    -e FRONTEND_URL=http://localhost:5173 `
     -e DB_CONNECTION=sqlite `
     -e DB_DATABASE=:memory: `
     --entrypoint sh `
