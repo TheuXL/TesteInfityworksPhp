@@ -17,7 +17,6 @@ class DevelopmentSeeder extends Seeder
 {
     public function run(): void
     {
-        // Idempotente: se já foi seedado (ex.: container reiniciou com volume MySQL persistido), não duplicar
         if (User::where('email', 'admin@plataforma.test')->exists()) {
             $this->command->info('Database already seeded (admin exists). Skipping.');
             return;

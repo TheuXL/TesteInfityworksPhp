@@ -19,7 +19,6 @@ const props = defineProps({
   color: { type: String, default: '#2563eb' },
   horizontal: Boolean,
   dark: Boolean,
-  /** Oculta os números do eixo Y (lateral) */
   hideYAxis: Boolean,
 });
 

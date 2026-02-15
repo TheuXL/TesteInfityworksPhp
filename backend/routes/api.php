@@ -15,11 +15,6 @@ use App\Http\Resources\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| API v1 – SPA e futuros clientes (ex.: app mobile)
-|--------------------------------------------------------------------------
-*/
 Route::prefix('v1')->group(function () {
     Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
         return new UserResource($request->user()->load('student'));
@@ -28,6 +23,7 @@ Route::prefix('v1')->group(function () {
     Route::middleware(['auth:sanctum', 'role.admin'])->prefix('admin')->group(function () {
         Route::get('/dashboard', [ApiAdminDashboardController::class, 'index']);
         Route::get('/reports', [ApiReportController::class, 'index']);
+        Route::get('/reports/pdf', [ApiReportController::class, 'pdf']);
         Route::apiResource('areas', ApiAreaController::class);
         Route::apiResource('courses', ApiCourseController::class);
         Route::apiResource('teachers', ApiTeacherController::class);

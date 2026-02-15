@@ -18,7 +18,6 @@ const props = defineProps({
   series: { type: Array, default: () => [] },
   color: { type: String, default: '#06b6d4' },
   dark: Boolean,
-  /** Oculta os números do eixo Y (lateral) */
   hideYAxis: Boolean,
 });
 

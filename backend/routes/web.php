@@ -4,12 +4,6 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Web – apenas raiz e auth (POST). UI fica no frontend SPA.
-| GET login/register redirecionam para o frontend.
-|--------------------------------------------------------------------------
-*/
 Route::get('/', function () {
     return view('welcome');
 });

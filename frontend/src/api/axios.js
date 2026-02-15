@@ -9,14 +9,7 @@ const api = axios.create({
     'X-Requested-With': 'XMLHttpRequest',
   },
 });
-
-/**
- * Interceptor de resposta: tratamento global de erros.
- * Não redireciona aqui para evitar loop (ERR_TOO_MANY_REDIRECTS); o router guard já envia para /login.
- * - 401/403: limpa storage e rejeita (componentes/guard tratam).
- * - 422: normaliza erros de validação em error.validationErrors.
- */
-api.interceptors.response.use(
+terceptors.response.use(
   (response) => response,
   (error) => {
     const status = error.response?.status;

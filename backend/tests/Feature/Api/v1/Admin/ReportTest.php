@@ -31,4 +31,19 @@ class ReportTest extends TestCase
         $response = $this->getJson('/api/v1/admin/reports');
         $response->assertStatus(401);
     }
+
+    public function test_admin_can_download_reports_pdf(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $response = $this->actingAs($admin)->get('/api/v1/admin/reports/pdf');
+        $response->assertStatus(200);
+        $response->assertHeader('content-type', 'application/pdf');
+    }
+
+    public function test_student_cannot_download_reports_pdf(): void
+    {
+        $student = User::factory()->student()->create();
+        $response = $this->actingAs($student)->get('/api/v1/admin/reports/pdf');
+        $response->assertStatus(403);
+    }
 }

@@ -18,7 +18,6 @@ const props = defineProps({
   series: { type: Array, default: () => [] },
   colors: { type: Array, default: () => ['#2563eb', '#059669', '#d97706', '#dc2626'] },
   dark: Boolean,
-  /** Se true, otimiza para leitura: sem texto em cima da fatia, legenda clara com nome + valor + % */
   compactLabels: { type: Boolean, default: false },
 });
 
