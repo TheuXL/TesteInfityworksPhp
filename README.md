@@ -674,4 +674,75 @@ docker compose up -d --build
 
 ---
 
+## 🚀 Pontos de melhorias
+
+Sugestões de evolução para a Plataforma Prof. Jubilut, organizadas por tema. Podem ser implementadas de forma incremental.
+
+### Segurança
+
+- **Rate limiting** – Limitar requisições por IP/usuário nas rotas de login e nas APIs sensíveis para reduzir força bruta e abuso.
+- **Política de senha** – Exigir complexidade (tamanho mínimo, números, caracteres especiais) e histórico para evitar reutilização.
+- **2FA (autenticação em dois fatores)** – Opcional para admin e, se desejado, para alunos (TOTP ou e-mail).
+- **Auditoria** – Registrar ações sensíveis (login, alteração de dados, exclusões) em tabela de log para rastreabilidade.
+- **Sanitização e validação** – Revisar todos os inputs (formulários e APIs) com regras estritas e escape na saída para evitar XSS e injeção.
+- **Headers de segurança** – Helmet-style (CSP, X-Frame-Options, etc.) e cookies com `Secure`, `HttpOnly`, `SameSite` onde aplicável.
+
+### Documentação da API (Swagger/OpenAPI)
+
+- **OpenAPI (Swagger)** – Documentar todos os endpoints da API (parâmetros, respostas, códigos de erro) com **L5-Swagger** ou **Scramble** no Laravel.
+- **Ambiente de testes** – Swagger UI ou similar para testar as rotas autenticadas (Bearer ou cookie) direto no navegador.
+- **Changelog da API** – Manter um CHANGELOG ou seção no README com mudanças que quebram compatibilidade.
+
+### Organização do código
+
+- **Form Requests** – Trocar validações inline nos controllers por **Form Requests** (ex.: `StoreStudentRequest`, `UpdateCourseRequest`) para reutilização e clareza.
+- **DTOs (Data Transfer Objects)** – Usar objetos de transferência para payloads complexos entre camadas, facilitando tipagem e evolução da API.
+- **Actions/Commands** – Para fluxos mais longos (ex.: matrícula, geração de relatório), extrair para **Action classes** ou **Commands** para manter controllers enxutos.
+- **Padrão de respostas** – Padronizar formato de resposta da API (ex.: `{ data, meta, message }`) e usar **API Resources** de forma consistente.
+- **Configuração por ambiente** – Centralizar feature flags e limites em `config/` e `.env` para facilitar ajustes por ambiente.
+
+### Dashboard e UX
+
+- **Dashboard admin** – Filtros por período, comparação com período anterior, mais gráficos (evasão, desempenho por disciplina), cards clicáveis que levam a listas filtradas e exportação (CSV/Excel) além do PDF.
+- **Dashboard do aluno** – Visão de “minhas disciplinas”, notas ou progresso por curso, calendário de atividades e notificações (avisos da coordenação/professor).
+- **Dashboard do professor** – Se houver papel de professor no futuro: turmas, lista de alunos por disciplina, lançamento de notas/atividades.
+- **Responsividade e acessibilidade** – Revisar breakpoints, contraste e navegação por teclado (WCAG) em todas as telas.
+- **Loading e feedback** – Skeletons, estados de vazio (ilustração + texto) e toasts para sucesso/erro em ações importantes.
+
+### Recursos para alunos
+
+- **Perfil completo** – Edição de foto, telefone, endereço e exibição do histórico de matrículas e cursos concluídos.
+- **Boletim / histórico** – Visualização de notas (quando existir o conceito de notas) e histórico de disciplinas por curso.
+- **Materiais e avisos** – Área “Minhas disciplinas” com materiais disponibilizados pelo professor e avisos por turma.
+- **Comunicação** – Canal de dúvidas por disciplina (fórum simples ou mensagens) e notificações in-app ou por e-mail.
+
+### Recursos para professores
+
+- **Área do professor** – Painel específico (quando o papel professor for utilizado): turmas, lista de alunos, disciplinas lecionadas.
+- **Gestão de turmas** – Associar professor a disciplinas/turmas, visualizar matrículas e presenças (se houver módulo de frequência).
+- **Notas e atividades** – Lançamento de notas e atividades por disciplina/turma, com prazos e feedback para o aluno.
+- **Relatórios** – Relatório por turma (desempenho, evasão) e exportação em PDF/Excel.
+
+### Recursos para administração
+
+- **Relatórios avançados** – Relatórios customizáveis (período, curso, área), agendamento de envio por e-mail e mais formatos (Excel, CSV).
+- **Gestão de usuários** – Busca avançada, filtros por papel/curso, desativação em vez de exclusão e log de alterações.
+- **Backup e integridade** – Rotina de backup do banco e de arquivos e, se possível, checagem de integridade após restore.
+- **Configurações do sistema** – Tela de configurações (nome da instituição, prazos padrão, limites) persistidas em banco ou config.
+
+### Infraestrutura e DevOps
+
+- **CI/CD** – Pipeline (GitHub Actions, GitLab CI ou similar) para rodar testes, análise estática e deploy em staging/produção.
+- **Monitoramento** – Health check da API e do banco, logs centralizados e alertas para erros críticos ou indisponibilidade.
+- **Cache** – Uso de Redis para sessão e cache de consultas pesadas (ex.: dados do dashboard) para melhorar desempenho.
+- **Filas** – Envio de e-mails e geração de relatórios pesados em fila (Laravel Queue) para não travar a requisição.
+
+### Testes e qualidade
+
+- **Cobertura** – Aumentar cobertura de testes (unitários e de integração) nos serviços e controllers críticos.
+- **Testes E2E** – Testes end-to-end (Playwright ou Cypress) para fluxos principais: login, matrícula, geração de relatório.
+- **Análise estática** – PHPStan ou Psalm no backend e ESLint no frontend, integrados ao CI.
+
+---
+
 **Resumo:** A Plataforma Prof. Jubilut é composta pelo **Backend** (API Laravel 10 + Sanctum + MySQL), pelo **Frontend** (SPA Vue 3 + Pinia + ApexCharts) e pelo **Banco de Dados MySQL** (migrations e seed). Este README descreve a visão geral, a arquitetura, o que cada parte faz e como executar o projeto. Para detalhes de implementação, consulte os READMEs em `backend/` e `frontend/`.
